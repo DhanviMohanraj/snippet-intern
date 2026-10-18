@@ -1,0 +1,3282 @@
+[
+  {
+    "product_id": "LAP-0001",
+    "name": "Zenit Air 14",
+    "brand": "Zenit",
+    "category": "laptop",
+    "price_inr": 54999,
+    "specs": {
+      "cpu": "Intel Core i5-13420H",
+      "ram_gb": 16,
+      "storage_gb": 512,
+      "gpu": "Intel Iris Xe Graphics",
+      "vram_gb": 0,
+      "weight_kg": 1.35,
+      "battery_hr": 10.5,
+      "screen_in": 14.0,
+      "os": "Windows 11 Home"
+    },
+    "intended_use": [
+      "programming",
+      "student",
+      "general"
+    ],
+    "features": [
+      "Backlit Keyboard",
+      "Fingerprint Reader",
+      "FHD IPS Anti-Glare"
+    ],
+    "in_stock": true,
+    "rating": 4.4
+  },
+  {
+    "product_id": "LAP-0002",
+    "name": "Voltix DevBook Pro 16",
+    "brand": "Voltix",
+    "category": "laptop",
+    "price_inr": 112000,
+    "specs": {
+      "cpu": "AMD Ryzen 9 7940HS",
+      "ram_gb": 32,
+      "storage_gb": 1024,
+      "gpu": "AMD Radeon 780M",
+      "vram_gb": 0,
+      "weight_kg": 1.78,
+      "battery_hr": 12.0,
+      "screen_in": 16.0,
+      "os": "Ubuntu Linux 24.04"
+    },
+    "intended_use": [
+      "programming",
+      "machine_learning",
+      "productivity"
+    ],
+    "features": [
+      "3.2K 120Hz Display",
+      "All-Day Battery",
+      "Aluminum Unibody"
+    ],
+    "in_stock": true,
+    "rating": 4.7
+  },
+  {
+    "product_id": "LAP-0003",
+    "name": "Nexa Book Slim 13",
+    "brand": "Nexa",
+    "category": "laptop",
+    "price_inr": 42999,
+    "specs": {
+      "cpu": "Intel Core i3-1315U",
+      "ram_gb": 8,
+      "storage_gb": 512,
+      "gpu": "Intel UHD Graphics",
+      "vram_gb": 0,
+      "weight_kg": 1.22,
+      "battery_hr": 9.0,
+      "screen_in": 13.3,
+      "os": "Windows 11 Home"
+    },
+    "intended_use": [
+      "student",
+      "general"
+    ],
+    "features": [
+      "Fast Charging",
+      "Compact Form Factor"
+    ],
+    "in_stock": true,
+    "rating": 4.1
+  },
+  {
+    "product_id": "LAP-0004",
+    "name": "Lumina CodeMaster 15",
+    "brand": "Lumina",
+    "category": "laptop",
+    "price_inr": 84999,
+    "specs": {
+      "cpu": "Intel Core i7-13700H",
+      "ram_gb": 16,
+      "storage_gb": 1024,
+      "gpu": "Intel Iris Xe Graphics",
+      "vram_gb": 0,
+      "weight_kg": 1.65,
+      "battery_hr": 8.5,
+      "screen_in": 15.6,
+      "os": "Windows 11 Pro"
+    },
+    "intended_use": [
+      "programming",
+      "productivity"
+    ],
+    "features": [
+      "Thunderbolt 4",
+      "QHD IPS Screen",
+      "Dual Fan Cooling"
+    ],
+    "in_stock": true,
+    "rating": 4.5
+  },
+  {
+    "product_id": "LAP-0005",
+    "name": "Titan Forge RTX Beast",
+    "brand": "Titan",
+    "category": "laptop",
+    "price_inr": 215000,
+    "specs": {
+      "cpu": "Intel Core i9-14900HX",
+      "ram_gb": 64,
+      "storage_gb": 2048,
+      "gpu": "NVIDIA GeForce RTX 4090",
+      "vram_gb": 16,
+      "weight_kg": 2.95,
+      "battery_hr": 4.0,
+      "screen_in": 17.3,
+      "os": "Windows 11 Home"
+    },
+    "intended_use": [
+      "machine_learning",
+      "gaming",
+      "content_creation"
+    ],
+    "features": [
+      "Vapor Chamber Cooling",
+      "Mechanical RGB Keyboard",
+      "240Hz G-Sync Panel"
+    ],
+    "in_stock": true,
+    "rating": 4.8
+  },
+  {
+    "product_id": "LAP-0006",
+    "name": "Aether Feather 13",
+    "brand": "Aether",
+    "category": "laptop",
+    "price_inr": 98000,
+    "specs": {
+      "cpu": "Intel Core Ultra 7 155H",
+      "ram_gb": 16,
+      "storage_gb": 512,
+      "gpu": "Intel Arc Graphics",
+      "vram_gb": 0,
+      "weight_kg": 1.05,
+      "battery_hr": 14.5,
+      "screen_in": 13.4,
+      "os": "Windows 11 Home"
+    },
+    "intended_use": [
+      "student",
+      "general",
+      "productivity"
+    ],
+    "features": [
+      "Magnesium Alloy Chassis",
+      "OLED Touchscreen",
+      "Thunderbolt 4"
+    ],
+    "in_stock": true,
+    "rating": 4.6
+  },
+  {
+    "product_id": "LAP-0007",
+    "name": "Apex Nitro G15",
+    "brand": "Apex",
+    "category": "laptop",
+    "price_inr": 74999,
+    "specs": {
+      "cpu": "AMD Ryzen 7 7735HS",
+      "ram_gb": 16,
+      "storage_gb": 512,
+      "gpu": "NVIDIA GeForce RTX 4050",
+      "vram_gb": 6,
+      "weight_kg": 2.25,
+      "battery_hr": 5.5,
+      "screen_in": 15.6,
+      "os": "Windows 11 Home"
+    },
+    "intended_use": [
+      "gaming",
+      "programming"
+    ],
+    "features": [
+      "144Hz IPS Screen",
+      "RGB Keyboard",
+      "Dual SSD Slots"
+    ],
+    "in_stock": true,
+    "rating": 4.3
+  },
+  {
+    "product_id": "LAP-0008",
+    "name": "ByteCraft Studio 16",
+    "brand": "ByteCraft",
+    "category": "laptop",
+    "price_inr": 139999,
+    "specs": {
+      "cpu": "Intel Core i7-14700HX",
+      "ram_gb": 32,
+      "storage_gb": 1024,
+      "gpu": "NVIDIA GeForce RTX 4070",
+      "vram_gb": 8,
+      "weight_kg": 2.45,
+      "battery_hr": 6.0,
+      "screen_in": 16.0,
+      "os": "Windows 11 Pro"
+    },
+    "intended_use": [
+      "content_creation",
+      "machine_learning",
+      "gaming"
+    ],
+    "features": [
+      "100% DCI-P3 Mini-LED",
+      "SD Express Card Reader",
+      "Quiet Fans"
+    ],
+    "in_stock": true,
+    "rating": 4.7
+  },
+  {
+    "product_id": "LAP-0009",
+    "name": "Kestrel Swift 14",
+    "brand": "Kestrel",
+    "category": "laptop",
+    "price_inr": 62999,
+    "specs": {
+      "cpu": "AMD Ryzen 5 7640HS",
+      "ram_gb": 16,
+      "storage_gb": 512,
+      "gpu": "AMD Radeon 760M",
+      "vram_gb": 0,
+      "weight_kg": 1.4,
+      "battery_hr": 11.0,
+      "screen_in": 14.0,
+      "os": "Windows 11 Home"
+    },
+    "intended_use": [
+      "student",
+      "programming",
+      "general"
+    ],
+    "features": [
+      "OLED 90Hz Display",
+      "Fast USB-PD Charging"
+    ],
+    "in_stock": true,
+    "rating": 4.4
+  },
+  {
+    "product_id": "LAP-0010",
+    "name": "Zenit Horizon Workstation",
+    "brand": "Zenit",
+    "category": "laptop",
+    "price_inr": 175000,
+    "specs": {
+      "cpu": "Intel Core i9-13980HX",
+      "ram_gb": 32,
+      "storage_gb": 2048,
+      "gpu": "NVIDIA GeForce RTX 4080",
+      "vram_gb": 12,
+      "weight_kg": 2.7,
+      "battery_hr": 4.5,
+      "screen_in": 16.0,
+      "os": "Windows 11 Pro"
+    },
+    "intended_use": [
+      "machine_learning",
+      "content_creation",
+      "gaming"
+    ],
+    "features": [
+      "ISV Certified Drivers",
+      "ECC RAM Support",
+      "4K OLED Display"
+    ],
+    "in_stock": true,
+    "rating": 4.8
+  },
+  {
+    "product_id": "LAP-0011",
+    "name": "Nova Edge 15 Creator",
+    "brand": "Nova",
+    "category": "laptop",
+    "price_inr": 80500,
+    "specs": {
+      "cpu": "AMD Ryzen 7 7840HS",
+      "ram_gb": 16,
+      "storage_gb": 1024,
+      "gpu": "NVIDIA GeForce RTX 3050",
+      "vram_gb": 6,
+      "weight_kg": 1.85,
+      "battery_hr": 7.5,
+      "screen_in": 15.6,
+      "os": "Windows 11 Home"
+    },
+    "intended_use": [
+      "content_creation",
+      "programming",
+      "gaming"
+    ],
+    "features": [
+      "100% sRGB Display",
+      "Precision Glass Trackpad",
+      "Wi-Fi 6E"
+    ],
+    "in_stock": true,
+    "rating": 4.2
+  },
+  {
+    "product_id": "LAP-0012",
+    "name": "Voltix Blade Stealth 14",
+    "brand": "Voltix",
+    "category": "laptop",
+    "price_inr": 145000,
+    "specs": {
+      "cpu": "AMD Ryzen 9 8945HS",
+      "ram_gb": 32,
+      "storage_gb": 1024,
+      "gpu": "NVIDIA GeForce RTX 4060",
+      "vram_gb": 8,
+      "weight_kg": 1.55,
+      "battery_hr": 8.0,
+      "screen_in": 14.0,
+      "os": "Windows 11 Home"
+    },
+    "intended_use": [
+      "gaming",
+      "programming",
+      "machine_learning"
+    ],
+    "features": [
+      "CNC Aluminum Chassis",
+      "165Hz QHD Screen"
+    ],
+    "in_stock": false,
+    "rating": 4.6
+  },
+  {
+    "product_id": "LAP-0013",
+    "name": "ByteCraft Desktop Replacement",
+    "brand": "ByteCraft",
+    "category": "laptop",
+    "price_inr": 189000,
+    "specs": {
+      "cpu": "Intel Core i9-14900HX",
+      "ram_gb": 32,
+      "storage_gb": 2048,
+      "gpu": "NVIDIA GeForce RTX 4080",
+      "vram_gb": 12,
+      "screen_in": 18.0,
+      "os": "Windows 11 Pro"
+    },
+    "intended_use": [
+      "machine_learning",
+      "gaming"
+    ],
+    "features": [
+      "Dual 330W Power In",
+      "240Hz 18-inch Display"
+    ],
+    "in_stock": true,
+    "rating": 4.5
+  },
+  {
+    "product_id": "LAP-0014",
+    "name": "Nexa EcoBook 15",
+    "brand": "Nexa",
+    "category": "laptop",
+    "price_inr": 38999,
+    "specs": {
+      "cpu": "Intel Core i3-1215U",
+      "ram_gb": 8,
+      "storage_gb": 256,
+      "gpu": "Intel UHD Graphics",
+      "vram_gb": 0,
+      "weight_kg": 1.7,
+      "battery_hr": 6.5,
+      "screen_in": 15.6,
+      "os": "Windows 11 Home"
+    },
+    "intended_use": [
+      "student",
+      "general"
+    ],
+    "features": [
+      "Recycled Ocean Plastic Housing",
+      "Anti-Glare Screen"
+    ],
+    "in_stock": true,
+    "rating": null
+  },
+  {
+    "product_id": "LAP-0015",
+    "name": "Apex Legion Pro 7",
+    "brand": "Apex",
+    "category": "laptop",
+    "price_inr": 199999,
+    "specs": {
+      "cpu": "AMD Ryzen 9 7945HX",
+      "ram_gb": 32,
+      "storage_gb": 1024,
+      "gpu": "NVIDIA GeForce RTX 4080",
+      "vram_gb": 12,
+      "weight_kg": 2.8,
+      "battery_hr": 5.0,
+      "screen_in": 16.0,
+      "os": "Windows 11 Home"
+    },
+    "intended_use": [
+      "gaming",
+      "machine_learning"
+    ],
+    "features": [
+      "ColdFront 5.0 Vapor Cooling",
+      "Per-Key RGB"
+    ],
+    "in_stock": true,
+    "rating": 4.9
+  },
+  {
+    "product_id": "LAP-0016",
+    "name": "Lumina UltraSlate 14",
+    "brand": "Lumina",
+    "category": "laptop",
+    "price_inr": 68000,
+    "specs": {
+      "cpu": "Intel Core i5-13500H",
+      "ram_gb": 16,
+      "storage_gb": 512,
+      "gpu": "Intel Iris Xe Graphics",
+      "vram_gb": 0,
+      "weight_kg": 1.3,
+      "battery_hr": 11.5,
+      "screen_in": 14.0,
+      "os": "Windows 11 Home"
+    },
+    "intended_use": [
+      "student",
+      "programming"
+    ],
+    "features": [
+      "2.8K 90Hz OLED",
+      "Dual Mics with AI Noise Cancellation"
+    ],
+    "in_stock": true,
+    "rating": 4.3
+  },
+  {
+    "product_id": "LAP-0017",
+    "name": "Kestrel Aero 16",
+    "brand": "Kestrel",
+    "category": "laptop",
+    "price_inr": 89999,
+    "specs": {
+      "cpu": "AMD Ryzen 7 8845HS",
+      "ram_gb": 16,
+      "storage_gb": 1024,
+      "gpu": "AMD Radeon 780M",
+      "vram_gb": 0,
+      "weight_kg": 1.48,
+      "battery_hr": 13.0,
+      "screen_in": 16.0,
+      "os": "Windows 11 Home"
+    },
+    "intended_use": [
+      "programming",
+      "productivity",
+      "general"
+    ],
+    "features": [
+      "Ultra-Thin 14mm Profile",
+      "120Hz IPS Display"
+    ],
+    "in_stock": true,
+    "rating": 4.5
+  },
+  {
+    "product_id": "LAP-0018",
+    "name": "Titan Workstation Pro",
+    "brand": "Titan",
+    "category": "laptop",
+    "price_inr": 249000,
+    "specs": {
+      "cpu": "Intel Core i9-14900HX",
+      "ram_gb": 64,
+      "storage_gb": 4096,
+      "gpu": "NVIDIA GeForce RTX 4090",
+      "vram_gb": 16,
+      "weight_kg": 3.1,
+      "battery_hr": 3.5,
+      "screen_in": 17.0,
+      "os": "Windows 11 Pro"
+    },
+    "intended_use": [
+      "machine_learning",
+      "content_creation"
+    ],
+    "features": [
+      "RAID 0 Dual NVMe",
+      "Mini-LED 1000 nits Panel"
+    ],
+    "in_stock": true,
+    "rating": 4.9
+  },
+  {
+    "product_id": "LAP-0019",
+    "name": "Zenit Student Prime 15",
+    "brand": "Zenit",
+    "category": "laptop",
+    "price_inr": 34999,
+    "specs": {
+      "cpu": "AMD Ryzen 3 7320U",
+      "ram_gb": 8,
+      "storage_gb": 512,
+      "gpu": "AMD Radeon 610M",
+      "vram_gb": 0,
+      "weight_kg": 1.6,
+      "battery_hr": 8.0,
+      "screen_in": 15.6,
+      "os": "Windows 11 Home"
+    },
+    "intended_use": [
+      "student",
+      "general"
+    ],
+    "features": [
+      "Spill-Resistant Keyboard",
+      "Full Numeric Keypad"
+    ],
+    "in_stock": true,
+    "rating": 3.9
+  },
+  {
+    "product_id": "LAP-0020",
+    "name": "Nova Pulse Gaming 15",
+    "brand": "Nova",
+    "category": "laptop",
+    "price_inr": 69999,
+    "specs": {
+      "cpu": "Intel Core i5-12450H",
+      "ram_gb": 16,
+      "storage_gb": 512,
+      "gpu": "NVIDIA GeForce RTX 3050",
+      "vram_gb": 4,
+      "weight_kg": 2.3,
+      "battery_hr": 4.5,
+      "screen_in": 15.6,
+      "os": "Windows 11 Home"
+    },
+    "intended_use": [
+      "gaming",
+      "student"
+    ],
+    "features": [
+      "144Hz Refresh Rate",
+      "Dual Fan Cooling"
+    ],
+    "in_stock": true,
+    "rating": 4.1
+  },
+  {
+    "product_id": "LAP-0021",
+    "name": "Aether Enterprise 14",
+    "brand": "Aether",
+    "category": "laptop",
+    "price_inr": 115000,
+    "specs": {
+      "cpu": "Intel Core i7-1365U",
+      "ram_gb": 16,
+      "storage_gb": 512,
+      "gpu": "Intel Iris Xe Graphics",
+      "vram_gb": 0,
+      "weight_kg": 1.25,
+      "battery_hr": 14.0,
+      "screen_in": 14.0,
+      "os": "Windows 11 Pro"
+    },
+    "intended_use": [
+      "productivity",
+      "general"
+    ],
+    "features": [
+      "vPro Security",
+      "Smart Card Reader",
+      "WWAN LTE Ready"
+    ],
+    "in_stock": true,
+    "rating": 4.6
+  },
+  {
+    "product_id": "LAP-0022",
+    "name": "Voltix DevEdge 14",
+    "brand": "Voltix",
+    "category": "laptop",
+    "price_inr": 76000,
+    "specs": {
+      "cpu": "AMD Ryzen 5 7640U",
+      "ram_gb": 16,
+      "storage_gb": 512,
+      "gpu": "AMD Radeon 760M",
+      "vram_gb": 0,
+      "weight_kg": 1.38,
+      "battery_hr": 12.5,
+      "screen_in": 14.0,
+      "os": "Fedora Linux 40"
+    },
+    "intended_use": [
+      "programming",
+      "student"
+    ],
+    "features": [
+      "Hardware Kill Switches",
+      "Replaceable Battery Module"
+    ],
+    "in_stock": true,
+    "rating": 4.7
+  },
+  {
+    "product_id": "LAP-0023",
+    "name": "ByteCraft Creator X15",
+    "brand": "ByteCraft",
+    "category": "laptop",
+    "price_inr": 128000,
+    "specs": {
+      "cpu": "Intel Core i7-13700H",
+      "ram_gb": 32,
+      "storage_gb": 1024,
+      "gpu": "NVIDIA GeForce RTX 4060",
+      "vram_gb": 8,
+      "weight_kg": 1.95,
+      "battery_hr": 7.0,
+      "screen_in": 15.6,
+      "os": "Windows 11 Pro"
+    },
+    "intended_use": [
+      "content_creation",
+      "programming",
+      "gaming"
+    ],
+    "features": [
+      "OLED 100% DCI-P3",
+      "DialPad Controller"
+    ],
+    "in_stock": true,
+    "rating": 4.5
+  },
+  {
+    "product_id": "LAP-0024",
+    "name": "Apex Phantom G16",
+    "brand": "Apex",
+    "category": "laptop",
+    "price_inr": 104999,
+    "specs": {
+      "cpu": "Intel Core i7-13620H",
+      "ram_gb": 16,
+      "storage_gb": 1024,
+      "gpu": "NVIDIA GeForce RTX 4060",
+      "vram_gb": 8,
+      "weight_kg": 2.35,
+      "battery_hr": 5.0,
+      "screen_in": 16.0,
+      "os": "Windows 11 Home"
+    },
+    "intended_use": [
+      "gaming",
+      "machine_learning"
+    ],
+    "features": [
+      "165Hz IPS QHD",
+      "MUX Switch with Advanced Optimus"
+    ],
+    "in_stock": true,
+    "rating": 4.4
+  },
+  {
+    "product_id": "LAP-0025",
+    "name": "Lumina GramLight 16",
+    "brand": "Lumina",
+    "category": "laptop",
+    "price_inr": 95000,
+    "specs": {
+      "cpu": "Intel Core i7-1360P",
+      "ram_gb": 16,
+      "storage_gb": 512,
+      "gpu": "Intel Iris Xe Graphics",
+      "vram_gb": 0,
+      "weight_kg": 1.19,
+      "battery_hr": 16.0,
+      "screen_in": 16.0,
+      "os": "Windows 11 Home"
+    },
+    "intended_use": [
+      "productivity",
+      "general",
+      "student"
+    ],
+    "features": [
+      "Sub-1.2kg 16-inch Laptop",
+      "Magnesium Body"
+    ],
+    "in_stock": false,
+    "rating": 4.6
+  },
+  {
+    "product_id": "LAP-0026",
+    "name": "Nexa CodeBook 14",
+    "brand": "Nexa",
+    "category": "laptop",
+    "price_inr": 49999,
+    "specs": {
+      "cpu": "AMD Ryzen 5 5600H",
+      "ram_gb": 16,
+      "storage_gb": 512,
+      "gpu": "AMD Radeon Graphics",
+      "vram_gb": 0,
+      "weight_kg": 1.45,
+      "battery_hr": 8.0,
+      "screen_in": 14.0,
+      "os": "Windows 11 Home"
+    },
+    "intended_use": [
+      "programming",
+      "student"
+    ],
+    "features": [
+      "Tactile Keyboard",
+      "Dual Heat Pipes"
+    ],
+    "in_stock": true,
+    "rating": 4.2
+  },
+  {
+    "product_id": "LAP-0027",
+    "name": "Kestrel Swift Go 14",
+    "brand": "Kestrel",
+    "category": "laptop",
+    "price_inr": 58999,
+    "specs": {
+      "cpu": "Intel Core i5-1335U",
+      "ram_gb": 16,
+      "storage_gb": 512,
+      "gpu": "Intel Iris Xe Graphics",
+      "vram_gb": 0,
+      "weight_kg": 1.32,
+      "battery_hr": 10.0,
+      "screen_in": 14.0,
+      "os": "Windows 11 Home"
+    },
+    "intended_use": [
+      "student",
+      "general"
+    ],
+    "features": [
+      "1440p Webcam",
+      "Aluminum Lid"
+    ],
+    "in_stock": true,
+    "rating": 4.3
+  },
+  {
+    "product_id": "LAP-0028",
+    "name": "Titan ML Station 16",
+    "brand": "Titan",
+    "category": "laptop",
+    "price_inr": 168000,
+    "specs": {
+      "cpu": "AMD Ryzen 9 7940HS",
+      "ram_gb": 32,
+      "storage_gb": 1024,
+      "gpu": "NVIDIA GeForce RTX 4070",
+      "vram_gb": 8,
+      "weight_kg": 2.2,
+      "battery_hr": 6.5,
+      "screen_in": 16.0,
+      "os": "Ubuntu Linux 24.04"
+    },
+    "intended_use": [
+      "machine_learning",
+      "programming"
+    ],
+    "features": [
+      "CUDA Ready",
+      "Liquid Metal Thermal Compound"
+    ],
+    "in_stock": true,
+    "rating": 4.8
+  },
+  {
+    "product_id": "LAP-0029",
+    "name": "Zenit Slim 13 Plus",
+    "brand": "Zenit",
+    "category": "laptop",
+    "price_inr": 64000,
+    "specs": {
+      "cpu": "AMD Ryzen 7 7730U",
+      "ram_gb": 16,
+      "storage_gb": 512,
+      "gpu": "AMD Radeon Graphics",
+      "vram_gb": 0,
+      "weight_kg": 1.25,
+      "battery_hr": 13.5,
+      "screen_in": 13.3,
+      "os": "Windows 11 Home"
+    },
+    "intended_use": [
+      "productivity",
+      "student",
+      "general"
+    ],
+    "features": [
+      "Full HD Anti-Glare",
+      "Fast Charging 65W"
+    ],
+    "in_stock": true,
+    "rating": 4.4
+  },
+  {
+    "product_id": "LAP-0030",
+    "name": "Nova Studio Art 16",
+    "brand": "Nova",
+    "category": "laptop",
+    "price_inr": 142000,
+    "specs": {
+      "cpu": "Intel Core i7-14700H",
+      "ram_gb": 32,
+      "storage_gb": 1024,
+      "gpu": "NVIDIA GeForce RTX 4060",
+      "vram_gb": 8,
+      "weight_kg": 2.05,
+      "battery_hr": 7.5,
+      "screen_in": 16.0,
+      "os": "Windows 11 Pro"
+    },
+    "intended_use": [
+      "content_creation",
+      "programming"
+    ],
+    "features": [
+      "Touch 4K OLED Panel",
+      "Stylus Pen Included"
+    ],
+    "in_stock": true,
+    "rating": 4.6
+  },
+  {
+    "product_id": "LAP-0031",
+    "name": "Voltix Minimalist 14",
+    "brand": "Voltix",
+    "category": "laptop",
+    "price_inr": 47500,
+    "specs": {
+      "cpu": "Intel Core i5-1235U",
+      "ram_gb": 8,
+      "storage_gb": 512,
+      "gpu": "Intel Iris Xe Graphics",
+      "weight_kg": 1.42,
+      "battery_hr": 9.5,
+      "screen_in": 14.0,
+      "os": "Windows 11 Home"
+    },
+    "intended_use": [
+      "student",
+      "general"
+    ],
+    "features": [
+      "Clean Minimalist Design",
+      "Matte Display"
+    ],
+    "in_stock": true,
+    "rating": 4.0
+  },
+  {
+    "product_id": "LAP-0032",
+    "name": "Apex Stealth Gaming 14",
+    "brand": "Apex",
+    "category": "laptop",
+    "price_inr": 129999,
+    "specs": {
+      "cpu": "AMD Ryzen 7 8845HS",
+      "ram_gb": 16,
+      "storage_gb": 1024,
+      "gpu": "NVIDIA GeForce RTX 4060",
+      "vram_gb": 8,
+      "weight_kg": 1.68,
+      "battery_hr": 8.0,
+      "screen_in": 14.0,
+      "os": "Windows 11 Home"
+    },
+    "intended_use": [
+      "gaming",
+      "programming"
+    ],
+    "features": [
+      "120Hz OLED 0.2ms",
+      "Thin Bezel Chassis"
+    ],
+    "in_stock": true,
+    "rating": 4.7
+  },
+  {
+    "product_id": "LAP-0033",
+    "name": "Aether Carbon Pro 14",
+    "brand": "Aether",
+    "category": "laptop",
+    "price_inr": 158000,
+    "specs": {
+      "cpu": "Intel Core Ultra 7 165H",
+      "ram_gb": 32,
+      "storage_gb": 1024,
+      "gpu": "Intel Arc Graphics",
+      "vram_gb": 0,
+      "weight_kg": 1.12,
+      "battery_hr": 15.0,
+      "screen_in": 14.0,
+      "os": "Windows 11 Pro"
+    },
+    "intended_use": [
+      "productivity",
+      "programming"
+    ],
+    "features": [
+      "Carbon Fiber Body",
+      "Human Presence Detection"
+    ],
+    "in_stock": true,
+    "rating": 4.8
+  },
+  {
+    "product_id": "LAP-0034",
+    "name": "ByteCraft ValueBook 15",
+    "brand": "ByteCraft",
+    "category": "laptop",
+    "price_inr": 31999,
+    "specs": {
+      "cpu": "Intel Core i3-1115G4",
+      "ram_gb": 8,
+      "storage_gb": 256,
+      "gpu": "Intel UHD Graphics",
+      "vram_gb": 0,
+      "weight_kg": 1.75,
+      "battery_hr": 6.0,
+      "screen_in": 15.6,
+      "os": "Windows 11 Home"
+    },
+    "intended_use": [
+      "student",
+      "general"
+    ],
+    "features": [
+      "Affordable Daily Driver",
+      "HDMI Port"
+    ],
+    "in_stock": true,
+    "rating": 3.7
+  },
+  {
+    "product_id": "LAP-0035",
+    "name": "Lumina PowerEdge 16",
+    "brand": "Lumina",
+    "category": "laptop",
+    "price_inr": 108000,
+    "specs": {
+      "cpu": "AMD Ryzen 7 7840HS",
+      "ram_gb": 32,
+      "storage_gb": 1024,
+      "gpu": "AMD Radeon 780M",
+      "vram_gb": 0,
+      "weight_kg": 1.72,
+      "battery_hr": 11.0,
+      "screen_in": 16.0,
+      "os": "Ubuntu Linux 24.04"
+    },
+    "intended_use": [
+      "programming",
+      "machine_learning"
+    ],
+    "features": [
+      "Developer Edition",
+      "Dual USB-C with Alt DP"
+    ],
+    "in_stock": true,
+    "rating": 4.7
+  },
+  {
+    "product_id": "LAP-0036",
+    "name": "Titan Predator X17",
+    "brand": "Titan",
+    "category": "laptop",
+    "price_inr": 235000,
+    "specs": {
+      "cpu": "Intel Core i9-14900HX",
+      "ram_gb": 64,
+      "storage_gb": 2048,
+      "gpu": "NVIDIA GeForce RTX 4090",
+      "vram_gb": 16,
+      "weight_kg": 3.2,
+      "battery_hr": 3.0,
+      "screen_in": 17.3,
+      "os": "Windows 11 Home"
+    },
+    "intended_use": [
+      "gaming",
+      "machine_learning"
+    ],
+    "features": [
+      "Liquid Cooling Dock Compatible",
+      "Mechanical Cherry MX Switches"
+    ],
+    "in_stock": true,
+    "rating": 4.9
+  },
+  {
+    "product_id": "LAP-0037",
+    "name": "Zenit OfficeMate 15",
+    "brand": "Zenit",
+    "category": "laptop",
+    "price_inr": 39999,
+    "specs": {
+      "cpu": "Intel Core i3-1215U",
+      "ram_gb": 8,
+      "storage_gb": 512,
+      "gpu": "Intel UHD Graphics",
+      "vram_gb": 0,
+      "weight_kg": 1.68,
+      "battery_hr": 7.5,
+      "screen_in": 15.6,
+      "os": "Windows 11 Home"
+    },
+    "intended_use": [
+      "general",
+      "student"
+    ],
+    "features": [
+      "Numeric Keypad",
+      "Webcam Privacy Shutter"
+    ],
+    "in_stock": true,
+    "rating": 4.1
+  },
+  {
+    "product_id": "LAP-0038",
+    "name": "Nexa ProBook 14",
+    "brand": "Nexa",
+    "category": "laptop",
+    "price_inr": 56999,
+    "specs": {
+      "cpu": "AMD Ryzen 5 7530U",
+      "ram_gb": 16,
+      "storage_gb": 512,
+      "gpu": "AMD Radeon Graphics",
+      "vram_gb": 0,
+      "weight_kg": 1.4,
+      "battery_hr": 10.5,
+      "screen_in": 14.0,
+      "os": "Windows 11 Pro"
+    },
+    "intended_use": [
+      "productivity",
+      "student"
+    ],
+    "features": [
+      "MIL-STD-810H Tested",
+      "Spill Resistant"
+    ],
+    "in_stock": true,
+    "rating": 4.3
+  },
+  {
+    "product_id": "LAP-0039",
+    "name": "Nova Gaming Star 15",
+    "brand": "Nova",
+    "category": "laptop",
+    "price_inr": 63999,
+    "specs": {
+      "cpu": "Intel Core i5-12500H",
+      "ram_gb": 16,
+      "storage_gb": 512,
+      "gpu": "NVIDIA GeForce RTX 2050",
+      "vram_gb": 4,
+      "weight_kg": 2.2,
+      "battery_hr": 5.0,
+      "screen_in": 15.6,
+      "os": "Windows 11 Home"
+    },
+    "intended_use": [
+      "gaming",
+      "student"
+    ],
+    "features": [
+      "144Hz Display",
+      "Ray Tracing Support"
+    ],
+    "in_stock": true,
+    "rating": 3.9
+  },
+  {
+    "product_id": "LAP-0040",
+    "name": "Kestrel Ultra 14",
+    "brand": "Kestrel",
+    "category": "laptop",
+    "price_inr": 92000,
+    "specs": {
+      "cpu": "Intel Core Ultra 5 125H",
+      "ram_gb": 16,
+      "storage_gb": 1024,
+      "gpu": "Intel Arc Graphics",
+      "vram_gb": 0,
+      "weight_kg": 1.28,
+      "battery_hr": 13.0,
+      "screen_in": 14.0,
+      "os": "Windows 11 Home"
+    },
+    "intended_use": [
+      "programming",
+      "general",
+      "productivity"
+    ],
+    "features": [
+      "AI NPU Engine",
+      "2.8K 120Hz OLED"
+    ],
+    "in_stock": true,
+    "rating": 4.6
+  },
+  {
+    "product_id": "PHN-0001",
+    "name": "Velo Ultra 15 Pro",
+    "brand": "Velo",
+    "category": "phone",
+    "price_inr": 119999,
+    "specs": {
+      "chipset": "Snapdragon 8 Gen 3",
+      "ram_gb": 16,
+      "storage_gb": 512,
+      "camera_mp": 200.0,
+      "battery_mah": 5000,
+      "screen_in": 6.8,
+      "weight_g": 220,
+      "os": "Android 14"
+    },
+    "intended_use": [
+      "photography",
+      "gaming",
+      "productivity"
+    ],
+    "features": [
+      "Periscope 10x Zoom",
+      "LTPO AMOLED 120Hz",
+      "IP68 Rating"
+    ],
+    "in_stock": true,
+    "rating": 4.8
+  },
+  {
+    "product_id": "PHN-0002",
+    "name": "Pulse PhotoMaster 14",
+    "brand": "Pulse",
+    "category": "phone",
+    "price_inr": 79999,
+    "specs": {
+      "chipset": "Dimensity 9300",
+      "ram_gb": 12,
+      "storage_gb": 256,
+      "camera_mp": 108.0,
+      "battery_mah": 5400,
+      "screen_in": 6.7,
+      "weight_g": 198,
+      "os": "Android 14"
+    },
+    "intended_use": [
+      "photography",
+      "productivity"
+    ],
+    "features": [
+      "Hasselblad Color Calibration",
+      "100W Wired Charging"
+    ],
+    "in_stock": true,
+    "rating": 4.6
+  },
+  {
+    "product_id": "PHN-0003",
+    "name": "Nova Trigger Red 9",
+    "brand": "Nova",
+    "category": "phone",
+    "price_inr": 65999,
+    "specs": {
+      "chipset": "Snapdragon 8 Gen 3",
+      "ram_gb": 16,
+      "storage_gb": 512,
+      "camera_mp": 50.0,
+      "battery_mah": 6500,
+      "screen_in": 6.85,
+      "weight_g": 229,
+      "os": "Android 14"
+    },
+    "intended_use": [
+      "gaming",
+      "general"
+    ],
+    "features": [
+      "Shoulder Triggers",
+      "Built-in Cooling Fan",
+      "165Hz AMOLED"
+    ],
+    "in_stock": true,
+    "rating": 4.7
+  },
+  {
+    "product_id": "PHN-0004",
+    "name": "Apex Turbo GT 6",
+    "brand": "Apex",
+    "category": "phone",
+    "price_inr": 38999,
+    "specs": {
+      "chipset": "Snapdragon 8s Gen 3",
+      "ram_gb": 12,
+      "storage_gb": 256,
+      "camera_mp": 50.0,
+      "battery_mah": 5500,
+      "screen_in": 6.78,
+      "weight_g": 191,
+      "os": "Android 14"
+    },
+    "intended_use": [
+      "gaming",
+      "student"
+    ],
+    "features": [
+      "120W Flash Charge",
+      "Vapor Cooling System"
+    ],
+    "in_stock": true,
+    "rating": 4.4
+  },
+  {
+    "product_id": "PHN-0005",
+    "name": "Nexa Pocket C10",
+    "brand": "Nexa",
+    "category": "phone",
+    "price_inr": 12999,
+    "specs": {
+      "chipset": "Helio G99",
+      "ram_gb": 6,
+      "storage_gb": 128,
+      "camera_mp": 50.0,
+      "battery_mah": 5000,
+      "screen_in": 6.6,
+      "weight_g": 188,
+      "os": "Android 13"
+    },
+    "intended_use": [
+      "student",
+      "general"
+    ],
+    "features": [
+      "Headphone Jack",
+      "Expandable microSD Slot"
+    ],
+    "in_stock": true,
+    "rating": 4.1
+  },
+  {
+    "product_id": "PHN-0006",
+    "name": "Zenit Prime 5G",
+    "brand": "Zenit",
+    "category": "phone",
+    "price_inr": 17999,
+    "specs": {
+      "chipset": "Dimensity 6080",
+      "ram_gb": 8,
+      "storage_gb": 128,
+      "camera_mp": 64.0,
+      "battery_mah": 5000,
+      "screen_in": 6.72,
+      "weight_g": 190,
+      "os": "Android 14"
+    },
+    "intended_use": [
+      "student",
+      "general"
+    ],
+    "features": [
+      "120Hz IPS Display",
+      "Side Fingerprint Sensor"
+    ],
+    "in_stock": true,
+    "rating": 4.2
+  },
+  {
+    "product_id": "PHN-0007",
+    "name": "Horizon Fold Pro 3",
+    "brand": "Horizon",
+    "category": "phone",
+    "price_inr": 149999,
+    "specs": {
+      "chipset": "Snapdragon 8 Gen 3",
+      "ram_gb": 16,
+      "storage_gb": 512,
+      "camera_mp": 50.0,
+      "battery_mah": 4800,
+      "screen_in": 7.85,
+      "weight_g": 238,
+      "os": "Android 14"
+    },
+    "intended_use": [
+      "productivity",
+      "multitasking"
+    ],
+    "features": [
+      "Foldable Dual Screens",
+      "Stylus Support",
+      "Multitasking Split View"
+    ],
+    "in_stock": true,
+    "rating": 4.7
+  },
+  {
+    "product_id": "PHN-0008",
+    "name": "Velo Compact Mini 5",
+    "brand": "Velo",
+    "category": "phone",
+    "price_inr": 52999,
+    "specs": {
+      "chipset": "Snapdragon 8 Gen 2",
+      "ram_gb": 8,
+      "storage_gb": 128,
+      "camera_mp": 50.0,
+      "battery_mah": 4000,
+      "screen_in": 5.9,
+      "weight_g": 168,
+      "os": "Android 14"
+    },
+    "intended_use": [
+      "general",
+      "student"
+    ],
+    "features": [
+      "Pocket-Sized One Handed Grip",
+      "AMOLED 120Hz"
+    ],
+    "in_stock": false,
+    "rating": 4.3
+  },
+  {
+    "product_id": "PHN-0009",
+    "name": "Pulse Neo 8",
+    "brand": "Pulse",
+    "category": "phone",
+    "price_inr": 24999,
+    "specs": {
+      "chipset": "Snapdragon 7s Gen 2",
+      "ram_gb": 8,
+      "storage_gb": 256,
+      "camera_mp": 64.0,
+      "battery_mah": 5000,
+      "screen_in": 6.67,
+      "weight_g": 182,
+      "os": "Android 14"
+    },
+    "intended_use": [
+      "general",
+      "photography"
+    ],
+    "features": [
+      "OIS Main Camera",
+      "Gorilla Glass Victus"
+    ],
+    "in_stock": true,
+    "rating": 4.3
+  },
+  {
+    "product_id": "PHN-0010",
+    "name": "Zenit Edge 40 Neo",
+    "brand": "Zenit",
+    "category": "phone",
+    "price_inr": 22999,
+    "specs": {
+      "chipset": "Dimensity 7030",
+      "ram_gb": 12,
+      "storage_gb": 256,
+      "camera_mp": 50.0,
+      "battery_mah": 5000,
+      "screen_in": 6.55,
+      "weight_g": 172,
+      "os": "Android 14"
+    },
+    "intended_use": [
+      "general",
+      "productivity"
+    ],
+    "features": [
+      "Curved pOLED 144Hz",
+      "IP68 Submersible"
+    ],
+    "in_stock": true,
+    "rating": 4.4
+  },
+  {
+    "product_id": "PHN-0011",
+    "name": "ByteCraft Vision 1",
+    "brand": "ByteCraft",
+    "category": "phone",
+    "price_inr": 31999,
+    "specs": {
+      "chipset": "Tensor G3",
+      "ram_gb": 8,
+      "storage_gb": 128,
+      "camera_mp": 64.0,
+      "battery_mah": 4500,
+      "screen_in": 6.1,
+      "weight_g": 193,
+      "os": "Android 14"
+    },
+    "intended_use": [
+      "photography",
+      "general"
+    ],
+    "features": [
+      "Stock Android Updates",
+      "AI Photo Magic Eraser"
+    ],
+    "in_stock": true,
+    "rating": 4.5
+  },
+  {
+    "product_id": "PHN-0012",
+    "name": "Nova Gamer Lite",
+    "brand": "Nova",
+    "category": "phone",
+    "price_inr": 28999,
+    "specs": {
+      "chipset": "Dimensity 8200 Ultra",
+      "ram_gb": 8,
+      "storage_gb": 256,
+      "camera_mp": 64.0,
+      "battery_mah": 5000,
+      "screen_in": 6.67,
+      "weight_g": 190,
+      "os": "Android 14"
+    },
+    "intended_use": [
+      "gaming",
+      "student"
+    ],
+    "features": [
+      "LiquidCool Technology",
+      "Dual Stereo Speakers"
+    ],
+    "in_stock": true,
+    "rating": 4.2
+  },
+  {
+    "product_id": "PHN-0013",
+    "name": "Lumina PurePhone 2",
+    "brand": "Lumina",
+    "category": "phone",
+    "price_inr": 44999,
+    "specs": {
+      "chipset": "Snapdragon 8+ Gen 1",
+      "ram_gb": 12,
+      "storage_gb": 256,
+      "camera_mp": 50.0,
+      "battery_mah": 4700,
+      "screen_in": 6.7,
+      "weight_g": 201,
+      "os": "Nothing-style OS 2.5"
+    },
+    "intended_use": [
+      "productivity",
+      "general"
+    ],
+    "features": [
+      "Glyph LED Interface",
+      "Transparent Back Panel"
+    ],
+    "in_stock": true,
+    "rating": 4.4
+  },
+  {
+    "product_id": "PHN-0014",
+    "name": "Nexa Core 4G",
+    "brand": "Nexa",
+    "category": "phone",
+    "price_inr": 9999,
+    "specs": {
+      "chipset": "Unisoc T606",
+      "ram_gb": 4,
+      "storage_gb": 64,
+      "camera_mp": 13.0,
+      "battery_mah": 5000,
+      "screen_in": 6.5,
+      "os": "Android 13 Go"
+    },
+    "intended_use": [
+      "general",
+      "student"
+    ],
+    "features": [
+      "Budget Battery Champion",
+      "FM Radio"
+    ],
+    "in_stock": true,
+    "rating": 3.8
+  },
+  {
+    "product_id": "PHN-0015",
+    "name": "Apex Creator Phone Pro",
+    "brand": "Apex",
+    "category": "phone",
+    "price_inr": 89999,
+    "specs": {
+      "chipset": "Snapdragon 8 Gen 3",
+      "ram_gb": 16,
+      "storage_gb": 512,
+      "camera_mp": 50.0,
+      "battery_mah": 5400,
+      "screen_in": 6.78,
+      "weight_g": 205,
+      "os": "Android 14"
+    },
+    "intended_use": [
+      "photography",
+      "productivity"
+    ],
+    "features": [
+      "4K 120fps Dolby Video",
+      "Variable Aperture Lens"
+    ],
+    "in_stock": true,
+    "rating": 4.7
+  },
+  {
+    "product_id": "PHN-0016",
+    "name": "Kestrel SwiftPhone 7",
+    "brand": "Kestrel",
+    "category": "phone",
+    "price_inr": 19999,
+    "specs": {
+      "chipset": "Dimensity 6100+",
+      "ram_gb": 6,
+      "storage_gb": 128,
+      "camera_mp": 50.0,
+      "battery_mah": 5000,
+      "screen_in": 6.72,
+      "weight_g": 189,
+      "os": "Android 14"
+    },
+    "intended_use": [
+      "student",
+      "general"
+    ],
+    "features": [
+      "33W SUPERVOOC Charge",
+      "Slim 7.8mm Body"
+    ],
+    "in_stock": true,
+    "rating": 4.1
+  },
+  {
+    "product_id": "PHN-0017",
+    "name": "Velo Max Ultra",
+    "brand": "Velo",
+    "category": "phone",
+    "price_inr": 104999,
+    "specs": {
+      "chipset": "Snapdragon 8 Gen 3",
+      "ram_gb": 12,
+      "storage_gb": 256,
+      "camera_mp": 200.0,
+      "battery_mah": 5000,
+      "screen_in": 6.8,
+      "weight_g": 232,
+      "os": "Android 14"
+    },
+    "intended_use": [
+      "productivity",
+      "photography"
+    ],
+    "features": [
+      "Built-in S-Pen Stylus",
+      "Titanium Frame"
+    ],
+    "in_stock": true,
+    "rating": 4.8
+  },
+  {
+    "product_id": "PHN-0018",
+    "name": "Pulse Prime 5G",
+    "brand": "Pulse",
+    "category": "phone",
+    "price_inr": 16499,
+    "specs": {
+      "chipset": "Snapdragon 4 Gen 2",
+      "ram_gb": 6,
+      "storage_gb": 128,
+      "camera_mp": 50.0,
+      "battery_mah": 5000,
+      "screen_in": 6.79,
+      "weight_g": 199,
+      "os": "Android 14"
+    },
+    "intended_use": [
+      "student",
+      "general"
+    ],
+    "features": [
+      "Crystal Glass Back",
+      "IP53 Splash Resistance"
+    ],
+    "in_stock": true,
+    "rating": 4.0
+  },
+  {
+    "product_id": "PHN-0019",
+    "name": "Titan Armor X-Rugged",
+    "brand": "Titan",
+    "category": "phone",
+    "price_inr": 34999,
+    "specs": {
+      "chipset": "Dimensity 7050",
+      "ram_gb": 8,
+      "storage_gb": 256,
+      "camera_mp": 64.0,
+      "battery_mah": 10000,
+      "screen_in": 6.58,
+      "weight_g": 380,
+      "os": "Android 14"
+    },
+    "intended_use": [
+      "productivity",
+      "general"
+    ],
+    "features": [
+      "Massive 10000mAh Battery",
+      "MIL-STD-810H Drop Proof"
+    ],
+    "in_stock": true,
+    "rating": null
+  },
+  {
+    "product_id": "PHN-0020",
+    "name": "Zenit PixelView 8",
+    "brand": "Zenit",
+    "category": "phone",
+    "price_inr": 68999,
+    "specs": {
+      "chipset": "Tensor G3",
+      "ram_gb": 8,
+      "storage_gb": 256,
+      "camera_mp": 50.0,
+      "battery_mah": 4575,
+      "screen_in": 6.2,
+      "weight_g": 187,
+      "os": "Android 14"
+    },
+    "intended_use": [
+      "photography",
+      "general"
+    ],
+    "features": [
+      "Best-in-class Computational Photography",
+      "7 Years OS Updates"
+    ],
+    "in_stock": true,
+    "rating": 4.7
+  },
+  {
+    "product_id": "PHN-0021",
+    "name": "ByteCraft Power 6",
+    "brand": "ByteCraft",
+    "category": "phone",
+    "price_inr": 14999,
+    "specs": {
+      "chipset": "Helio G85",
+      "ram_gb": 6,
+      "storage_gb": 128,
+      "camera_mp": 50.0,
+      "battery_mah": 6000,
+      "screen_in": 6.7,
+      "weight_g": 208,
+      "os": "Android 13"
+    },
+    "intended_use": [
+      "student",
+      "general"
+    ],
+    "features": [
+      "Two-Day Battery Life",
+      "Reverse Charging"
+    ],
+    "in_stock": true,
+    "rating": 3.9
+  },
+  {
+    "product_id": "PHN-0022",
+    "name": "Nova Flip Pocket",
+    "brand": "Nova",
+    "category": "phone",
+    "price_inr": 72000,
+    "specs": {
+      "chipset": "Snapdragon 8+ Gen 1",
+      "ram_gb": 8,
+      "storage_gb": 256,
+      "camera_mp": 50.0,
+      "battery_mah": 3800,
+      "screen_in": 6.9,
+      "weight_g": 185,
+      "os": "Android 14"
+    },
+    "intended_use": [
+      "productivity",
+      "general"
+    ],
+    "features": [
+      "Clamshell Folding Display",
+      "Large Outer Screen"
+    ],
+    "in_stock": true,
+    "rating": 4.3
+  },
+  {
+    "product_id": "PHN-0023",
+    "name": "Lumina Clarity 10",
+    "brand": "Lumina",
+    "category": "phone",
+    "price_inr": 35999,
+    "specs": {
+      "chipset": "Snapdragon 7 Gen 3",
+      "ram_gb": 8,
+      "storage_gb": 256,
+      "camera_mp": 50.0,
+      "battery_mah": 5000,
+      "screen_in": 6.7,
+      "weight_g": 186,
+      "os": "Android 14"
+    },
+    "intended_use": [
+      "photography",
+      "general"
+    ],
+    "features": [
+      "Ring Flash Light",
+      "Aura Portrait Studio"
+    ],
+    "in_stock": true,
+    "rating": 4.3
+  },
+  {
+    "product_id": "PHN-0024",
+    "name": "Apex SpeedMaster 12",
+    "brand": "Apex",
+    "category": "phone",
+    "price_inr": 54999,
+    "specs": {
+      "chipset": "Snapdragon 8 Gen 2",
+      "ram_gb": 16,
+      "storage_gb": 256,
+      "camera_mp": 50.0,
+      "battery_mah": 5400,
+      "screen_in": 6.78,
+      "weight_g": 207,
+      "os": "Android 14"
+    },
+    "intended_use": [
+      "gaming",
+      "productivity"
+    ],
+    "features": [
+      "100W Charging",
+      "Sub-Millimeter Cooling Chamber"
+    ],
+    "in_stock": true,
+    "rating": 4.6
+  },
+  {
+    "product_id": "PHN-0025",
+    "name": "Nexa Note Max",
+    "brand": "Nexa",
+    "category": "phone",
+    "price_inr": 26999,
+    "specs": {
+      "chipset": "Dimensity 7200 Ultra",
+      "ram_gb": 12,
+      "storage_gb": 256,
+      "camera_mp": 200.0,
+      "battery_mah": 5000,
+      "screen_in": 6.67,
+      "weight_g": 199,
+      "os": "Android 14"
+    },
+    "intended_use": [
+      "photography",
+      "student"
+    ],
+    "features": [
+      "Curved AMOLED 120Hz",
+      "In-display Fingerprint"
+    ],
+    "in_stock": false,
+    "rating": 4.5
+  },
+  {
+    "product_id": "PHN-0026",
+    "name": "Horizon Slate Mobile",
+    "brand": "Horizon",
+    "category": "phone",
+    "price_inr": 62000,
+    "specs": {
+      "chipset": "Snapdragon 8 Gen 2",
+      "ram_gb": 12,
+      "storage_gb": 256,
+      "camera_mp": 50.0,
+      "battery_mah": 4800,
+      "screen_in": 6.6,
+      "weight_g": 195,
+      "os": "Android 14"
+    },
+    "intended_use": [
+      "productivity",
+      "general"
+    ],
+    "features": [
+      "Enterprise Knox Security",
+      "DeX Desktop Mode"
+    ],
+    "in_stock": true,
+    "rating": 4.5
+  },
+  {
+    "product_id": "PHN-0027",
+    "name": "Kestrel Pure Sound 5",
+    "brand": "Kestrel",
+    "category": "phone",
+    "price_inr": 21999,
+    "specs": {
+      "chipset": "Snapdragon 6 Gen 1",
+      "ram_gb": 8,
+      "storage_gb": 128,
+      "camera_mp": 50.0,
+      "battery_mah": 5000,
+      "screen_in": 6.5,
+      "weight_g": 178,
+      "os": "Android 14"
+    },
+    "intended_use": [
+      "general",
+      "student"
+    ],
+    "features": [
+      "Dolby Atmos Stereo Speakers",
+      "Hi-Res Audio Certified"
+    ],
+    "in_stock": true,
+    "rating": 4.1
+  },
+  {
+    "product_id": "PHN-0028",
+    "name": "Titan WorkMobile 10",
+    "brand": "Titan",
+    "category": "phone",
+    "price_inr": 41999,
+    "specs": {
+      "chipset": "Snapdragon 7s Gen 2",
+      "ram_gb": 12,
+      "storage_gb": 512,
+      "camera_mp": 108.0,
+      "battery_mah": 6000,
+      "screen_in": 6.7,
+      "weight_g": 215,
+      "os": "Android 14"
+    },
+    "intended_use": [
+      "productivity",
+      "general"
+    ],
+    "features": [
+      "Large 512GB Storage",
+      "Dual SIM with eSIM"
+    ],
+    "in_stock": true,
+    "rating": 4.4
+  },
+  {
+    "product_id": "PHN-0029",
+    "name": "Pulse ZoomMaster 12",
+    "brand": "Pulse",
+    "category": "phone",
+    "price_inr": 48999,
+    "specs": {
+      "chipset": "Dimensity 8300 Ultra",
+      "ram_gb": 12,
+      "storage_gb": 256,
+      "camera_mp": 64.0,
+      "battery_mah": 5000,
+      "screen_in": 6.67,
+      "weight_g": 190,
+      "os": "Android 14"
+    },
+    "intended_use": [
+      "photography",
+      "gaming"
+    ],
+    "features": [
+      "OIS Telephoto Lens",
+      "144Hz AMOLED Panel"
+    ],
+    "in_stock": true,
+    "rating": 4.5
+  },
+  {
+    "product_id": "PHN-0030",
+    "name": "Zenit Compact Lite",
+    "brand": "Zenit",
+    "category": "phone",
+    "price_inr": 15999,
+    "specs": {
+      "chipset": "Dimensity 6020",
+      "ram_gb": 6,
+      "storage_gb": 128,
+      "camera_mp": 50.0,
+      "battery_mah": 5000,
+      "screen_in": 6.56,
+      "weight_g": 185,
+      "os": "Android 13"
+    },
+    "intended_use": [
+      "general",
+      "student"
+    ],
+    "features": [
+      "Ergonomic Curved Back",
+      "Fast Biometric Unlock"
+    ],
+    "in_stock": true,
+    "rating": 4.0
+  },
+  {
+    "product_id": "HPH-0001",
+    "name": "Sonix QuietMaster 100",
+    "brand": "Sonix",
+    "category": "headphones",
+    "price_inr": 29999,
+    "specs": {
+      "type": "over-ear",
+      "anc": true,
+      "battery_hr": 35.0,
+      "wireless": true,
+      "weight_g": 250,
+      "codec": "LDAC, AAC, SBC"
+    },
+    "intended_use": [
+      "music",
+      "travel",
+      "study"
+    ],
+    "features": [
+      "Industry-Leading ANC",
+      "Multi-Point Bluetooth",
+      "Customizable EQ"
+    ],
+    "in_stock": true,
+    "rating": 4.8
+  },
+  {
+    "product_id": "HPH-0002",
+    "name": "Acoustic Pro Silence 700",
+    "brand": "Acoustic",
+    "category": "headphones",
+    "price_inr": 24999,
+    "specs": {
+      "type": "over-ear",
+      "anc": true,
+      "battery_hr": 30.0,
+      "wireless": true,
+      "weight_g": 240,
+      "codec": "aptX HD, AAC, SBC"
+    },
+    "intended_use": [
+      "travel",
+      "calls",
+      "music"
+    ],
+    "features": [
+      "TriPort Acoustic Architecture",
+      "Clear Voice Mic Array"
+    ],
+    "in_stock": true,
+    "rating": 4.7
+  },
+  {
+    "product_id": "HPH-0003",
+    "name": "Nova Arctis Pulse Pro",
+    "brand": "Nova",
+    "category": "headphones",
+    "price_inr": 16999,
+    "specs": {
+      "type": "over-ear",
+      "anc": false,
+      "battery_hr": 40.0,
+      "wireless": true,
+      "weight_g": 290,
+      "codec": "2.4GHz Lossless, SBC"
+    },
+    "intended_use": [
+      "gaming",
+      "calls"
+    ],
+    "features": [
+      "Retractable ClearCast Mic",
+      "Sonar Spatial Audio",
+      "ChatMix Dial"
+    ],
+    "in_stock": true,
+    "rating": 4.6
+  },
+  {
+    "product_id": "HPH-0004",
+    "name": "Sonix Studio Monitor Wired",
+    "brand": "Sonix",
+    "category": "headphones",
+    "price_inr": 9999,
+    "specs": {
+      "type": "over-ear",
+      "anc": false,
+      "battery_hr": 50.0,
+      "wireless": false,
+      "weight_g": 245,
+      "codec": "Analog Cable"
+    },
+    "intended_use": [
+      "music",
+      "study"
+    ],
+    "features": [
+      "Flat Frequency Response",
+      "Detachable Coiled Cable"
+    ],
+    "in_stock": false,
+    "rating": 4.5
+  },
+  {
+    "product_id": "HPH-0005",
+    "name": "Pulse AirBuds Pro 3",
+    "brand": "Pulse",
+    "category": "headphones",
+    "price_inr": 14999,
+    "specs": {
+      "type": "in-ear",
+      "anc": true,
+      "battery_hr": 28.0,
+      "wireless": true,
+      "weight_g": 52,
+      "codec": "LDAC, AAC"
+    },
+    "intended_use": [
+      "travel",
+      "music",
+      "calls"
+    ],
+    "features": [
+      "Spatial Audio with Head Tracking",
+      "Wireless Qi Charging Case"
+    ],
+    "in_stock": true,
+    "rating": 4.5
+  },
+  {
+    "product_id": "HPH-0006",
+    "name": "Zenit SoundPod Neo",
+    "brand": "Zenit",
+    "category": "headphones",
+    "price_inr": 3999,
+    "specs": {
+      "type": "in-ear",
+      "anc": false,
+      "battery_hr": 24.0,
+      "wireless": true,
+      "weight_g": 42,
+      "codec": "AAC, SBC"
+    },
+    "intended_use": [
+      "calls",
+      "study",
+      "general"
+    ],
+    "features": [
+      "ENC Call Noise Reduction",
+      "IPX5 Sweat Resistance"
+    ],
+    "in_stock": true,
+    "rating": 4.1
+  },
+  {
+    "product_id": "HPH-0007",
+    "name": "ByteCraft TalkMaster Office",
+    "brand": "ByteCraft",
+    "category": "headphones",
+    "price_inr": 7999,
+    "specs": {
+      "type": "over-ear",
+      "anc": true,
+      "battery_hr": 32.0,
+      "wireless": true,
+      "weight_g": 180,
+      "codec": "AAC, SBC"
+    },
+    "intended_use": [
+      "calls",
+      "study"
+    ],
+    "features": [
+      "Boom Mic with Flip-to-Mute",
+      "BusyLight Indicator"
+    ],
+    "in_stock": true,
+    "rating": 4.3
+  },
+  {
+    "product_id": "HPH-0008",
+    "name": "Kestrel BeatMax ANC",
+    "brand": "Kestrel",
+    "category": "headphones",
+    "price_inr": 11999,
+    "specs": {
+      "type": "over-ear",
+      "anc": true,
+      "battery_hr": 45.0,
+      "wireless": true,
+      "weight_g": 260,
+      "codec": "aptX, AAC"
+    },
+    "intended_use": [
+      "music",
+      "travel",
+      "study"
+    ],
+    "features": [
+      "Deep Bass Boost",
+      "Ultra-Plush Memory Foam"
+    ],
+    "in_stock": true,
+    "rating": 4.4
+  },
+  {
+    "product_id": "HPH-0009",
+    "name": "Acoustic Aero In-Ear ANC",
+    "brand": "Acoustic",
+    "category": "headphones",
+    "price_inr": 18999,
+    "specs": {
+      "type": "in-ear",
+      "anc": true,
+      "battery_hr": 24.0,
+      "wireless": true,
+      "weight_g": 58,
+      "codec": "aptX Adaptive, AAC"
+    },
+    "intended_use": [
+      "music",
+      "travel"
+    ],
+    "features": [
+      "Dual Driver Coaxial Design",
+      "Adaptive ANC 2.0"
+    ],
+    "in_stock": true,
+    "rating": 4.6
+  },
+  {
+    "product_id": "HPH-0010",
+    "name": "Apex Gaming Cloud X",
+    "brand": "Apex",
+    "category": "headphones",
+    "price_inr": 5499,
+    "specs": {
+      "type": "over-ear",
+      "anc": false,
+      "battery_hr": 30.0,
+      "wireless": true,
+      "weight_g": 285,
+      "codec": "2.4GHz Low Latency"
+    },
+    "intended_use": [
+      "gaming",
+      "calls"
+    ],
+    "features": [
+      "53mm Drivers",
+      "Memory Foam Ear Cushions"
+    ],
+    "in_stock": true,
+    "rating": 4.4
+  },
+  {
+    "product_id": "HPH-0011",
+    "name": "Titan Field Comm Wireless",
+    "brand": "Titan",
+    "category": "headphones",
+    "price_inr": 8500,
+    "specs": {
+      "type": "over-ear",
+      "anc": true,
+      "battery_hr": 20.0,
+      "wireless": true,
+      "weight_g": 210,
+      "codec": "AAC, SBC"
+    },
+    "intended_use": [
+      "calls",
+      "travel"
+    ],
+    "features": [
+      "Heavy Duty Boom Mic",
+      "Wind Noise Filter"
+    ],
+    "in_stock": true,
+    "rating": null
+  },
+  {
+    "product_id": "HPH-0012",
+    "name": "Zenit Tune Simple",
+    "brand": "Zenit",
+    "category": "headphones",
+    "price_inr": 1999,
+    "specs": {
+      "type": "in-ear",
+      "anc": false,
+      "battery_hr": 18.0,
+      "wireless": true,
+      "weight_g": 38
+    },
+    "intended_use": [
+      "music",
+      "study"
+    ],
+    "features": [
+      "Compact Charging Case",
+      "Touch Controls"
+    ],
+    "in_stock": true,
+    "rating": 3.9
+  },
+  {
+    "product_id": "HPH-0013",
+    "name": "Sonix Elite DJ 500",
+    "brand": "Sonix",
+    "category": "headphones",
+    "price_inr": 13500,
+    "specs": {
+      "type": "over-ear",
+      "anc": false,
+      "battery_hr": 40.0,
+      "wireless": true,
+      "weight_g": 270,
+      "codec": "aptX, SBC"
+    },
+    "intended_use": [
+      "music",
+      "gaming"
+    ],
+    "features": [
+      "90-Degree Swiveling Earcups",
+      "50mm Neodymium Drivers"
+    ],
+    "in_stock": true,
+    "rating": 4.5
+  },
+  {
+    "product_id": "HPH-0014",
+    "name": "Pulse SportFit Air",
+    "brand": "Pulse",
+    "category": "headphones",
+    "price_inr": 4499,
+    "specs": {
+      "type": "in-ear",
+      "anc": false,
+      "battery_hr": 30.0,
+      "wireless": true,
+      "weight_g": 48,
+      "codec": "AAC, SBC"
+    },
+    "intended_use": [
+      "music",
+      "travel"
+    ],
+    "features": [
+      "Secure Earhooks",
+      "IPX7 Waterproof"
+    ],
+    "in_stock": true,
+    "rating": 4.2
+  },
+  {
+    "product_id": "HPH-0015",
+    "name": "Nova Audiophile OpenBack",
+    "brand": "Nova",
+    "category": "headphones",
+    "price_inr": 22000,
+    "specs": {
+      "type": "over-ear",
+      "anc": false,
+      "battery_hr": 60.0,
+      "wireless": false,
+      "weight_g": 320,
+      "codec": "Direct Cable"
+    },
+    "intended_use": [
+      "music",
+      "study"
+    ],
+    "features": [
+      "Open Back Soundstage",
+      "Velour Ear Pads"
+    ],
+    "in_stock": true,
+    "rating": 4.8
+  },
+  {
+    "product_id": "HPH-0016",
+    "name": "Lumina Transparent Buds",
+    "brand": "Lumina",
+    "category": "headphones",
+    "price_inr": 8999,
+    "specs": {
+      "type": "in-ear",
+      "anc": true,
+      "battery_hr": 22.0,
+      "wireless": true,
+      "weight_g": 45,
+      "codec": "LHDC, AAC"
+    },
+    "intended_use": [
+      "music",
+      "calls"
+    ],
+    "features": [
+      "See-Through Aesthetic",
+      "Pinch Gesture Controls"
+    ],
+    "in_stock": false,
+    "rating": 4.3
+  },
+  {
+    "product_id": "HPH-0017",
+    "name": "Kestrel StudyPod Lite",
+    "brand": "Kestrel",
+    "category": "headphones",
+    "price_inr": 2499,
+    "specs": {
+      "type": "in-ear",
+      "anc": false,
+      "battery_hr": 20.0,
+      "wireless": true,
+      "weight_g": 40,
+      "codec": "SBC"
+    },
+    "intended_use": [
+      "study",
+      "calls"
+    ],
+    "features": [
+      "Clear Mic Algorithm",
+      "Pocketable Case"
+    ],
+    "in_stock": true,
+    "rating": 3.8
+  },
+  {
+    "product_id": "HPH-0018",
+    "name": "Acoustic Concert ANC",
+    "brand": "Acoustic",
+    "category": "headphones",
+    "price_inr": 34999,
+    "specs": {
+      "type": "over-ear",
+      "anc": true,
+      "battery_hr": 50.0,
+      "wireless": true,
+      "weight_g": 265,
+      "codec": "LDAC, aptX Lossless"
+    },
+    "intended_use": [
+      "music",
+      "travel"
+    ],
+    "features": [
+      "Planar Magnetic Drivers",
+      "Aircraft Aluminum Build"
+    ],
+    "in_stock": true,
+    "rating": 4.9
+  },
+  {
+    "product_id": "HPH-0019",
+    "name": "ByteCraft Office Pro 2",
+    "brand": "ByteCraft",
+    "category": "headphones",
+    "price_inr": 6200,
+    "specs": {
+      "type": "over-ear",
+      "anc": false,
+      "battery_hr": 36.0,
+      "wireless": true,
+      "weight_g": 195,
+      "codec": "AAC, SBC"
+    },
+    "intended_use": [
+      "calls",
+      "study"
+    ],
+    "features": [
+      "Dedicated Mute Button",
+      "Soft Leatherette Cushions"
+    ],
+    "in_stock": true,
+    "rating": 4.2
+  },
+  {
+    "product_id": "HPH-0020",
+    "name": "Sonix EarFit Basic",
+    "brand": "Sonix",
+    "category": "headphones",
+    "price_inr": 1299,
+    "specs": {
+      "type": "in-ear",
+      "anc": false,
+      "battery_hr": 14.0,
+      "wireless": true,
+      "weight_g": 35,
+      "codec": "SBC"
+    },
+    "intended_use": [
+      "study",
+      "general"
+    ],
+    "features": [
+      "Budget Everyday Earbuds",
+      "Type-C Fast Charge"
+    ],
+    "in_stock": true,
+    "rating": 3.7
+  },
+  {
+    "product_id": "TAB-0001",
+    "name": "Aether Canvas Pro 13",
+    "brand": "Aether",
+    "category": "tablet",
+    "price_inr": 89999,
+    "specs": {
+      "chipset": "Apple M2 equivalent / Custom SoC",
+      "ram_gb": 16,
+      "storage_gb": 512,
+      "screen_in": 12.9,
+      "stylus_support": true,
+      "battery_hr": 11.0,
+      "weight_g": 680
+    },
+    "intended_use": [
+      "drawing",
+      "productivity",
+      "note_taking"
+    ],
+    "features": [
+      "Mini-LED 120Hz Display",
+      "Pressure Stylus with Tilt",
+      "Thunderbolt Port"
+    ],
+    "in_stock": true,
+    "rating": 4.8
+  },
+  {
+    "product_id": "TAB-0002",
+    "name": "Horizon Note Ultra 14",
+    "brand": "Horizon",
+    "category": "tablet",
+    "price_inr": 79999,
+    "specs": {
+      "chipset": "Snapdragon 8 Gen 2",
+      "ram_gb": 12,
+      "storage_gb": 256,
+      "screen_in": 14.6,
+      "stylus_support": true,
+      "battery_hr": 12.0,
+      "weight_g": 732
+    },
+    "intended_use": [
+      "drawing",
+      "note_taking",
+      "productivity"
+    ],
+    "features": [
+      "Super AMOLED 120Hz",
+      "S-Pen in Box",
+      "IP68 Dust/Water Resistant"
+    ],
+    "in_stock": true,
+    "rating": 4.7
+  },
+  {
+    "product_id": "TAB-0003",
+    "name": "Pulse Pad Creator 11",
+    "brand": "Pulse",
+    "category": "tablet",
+    "price_inr": 49999,
+    "specs": {
+      "chipset": "Dimensity 9000",
+      "ram_gb": 8,
+      "storage_gb": 128,
+      "screen_in": 11.6,
+      "stylus_support": true,
+      "battery_hr": 10.0,
+      "weight_g": 552
+    },
+    "intended_use": [
+      "drawing",
+      "study"
+    ],
+    "features": [
+      "7:5 ReadFit Screen Ratio",
+      "144Hz Refresh Rate"
+    ],
+    "in_stock": false,
+    "rating": 4.5
+  },
+  {
+    "product_id": "TAB-0004",
+    "name": "Zenit Slate Student 11",
+    "brand": "Zenit",
+    "category": "tablet",
+    "price_inr": 21999,
+    "specs": {
+      "chipset": "Helio G99",
+      "ram_gb": 6,
+      "storage_gb": 128,
+      "screen_in": 11.0,
+      "stylus_support": true,
+      "battery_hr": 10.5,
+      "weight_g": 480
+    },
+    "intended_use": [
+      "note_taking",
+      "study",
+      "entertainment"
+    ],
+    "features": [
+      "Quad Stereo Speakers",
+      "Reading Mode with TUV Certification"
+    ],
+    "in_stock": true,
+    "rating": 4.3
+  },
+  {
+    "product_id": "TAB-0005",
+    "name": "Nexa Tab Lite 10",
+    "brand": "Nexa",
+    "category": "tablet",
+    "price_inr": 14999,
+    "specs": {
+      "chipset": "Unisoc T616",
+      "ram_gb": 4,
+      "storage_gb": 64,
+      "screen_in": 10.4,
+      "stylus_support": false,
+      "battery_hr": 8.0,
+      "weight_g": 450
+    },
+    "intended_use": [
+      "study",
+      "entertainment"
+    ],
+    "features": [
+      "Kid-Friendly Dashboard",
+      "Slim Aluminum Shell"
+    ],
+    "in_stock": true,
+    "rating": 4.0
+  },
+  {
+    "product_id": "TAB-0006",
+    "name": "ByteCraft Cinema Tab 12",
+    "brand": "ByteCraft",
+    "category": "tablet",
+    "price_inr": 34999,
+    "specs": {
+      "chipset": "Snapdragon 7s Gen 2",
+      "ram_gb": 8,
+      "storage_gb": 256,
+      "screen_in": 12.1,
+      "stylus_support": true,
+      "battery_hr": 13.0,
+      "weight_g": 571
+    },
+    "intended_use": [
+      "entertainment",
+      "productivity",
+      "study"
+    ],
+    "features": [
+      "Dolby Vision Atmos Quad Speakers",
+      "10000mAh Battery"
+    ],
+    "in_stock": true,
+    "rating": 4.5
+  },
+  {
+    "product_id": "TAB-0007",
+    "name": "Lumina Slate Air",
+    "brand": "Lumina",
+    "category": "tablet",
+    "price_inr": 28999,
+    "specs": {
+      "chipset": "Snapdragon 680",
+      "ram_gb": 6,
+      "storage_gb": 128,
+      "screen_in": 11.5,
+      "stylus_support": false,
+      "battery_hr": 9.5,
+      "weight_g": 490
+    },
+    "intended_use": [
+      "entertainment",
+      "note_taking"
+    ],
+    "features": [
+      "2K High Resolution Display",
+      "Low Blue Light Certified"
+    ],
+    "in_stock": true,
+    "rating": 4.2
+  },
+  {
+    "product_id": "TAB-0008",
+    "name": "Kestrel PenMaster 10",
+    "brand": "Kestrel",
+    "category": "tablet",
+    "price_inr": 24999,
+    "specs": {
+      "chipset": "Dimensity 7050",
+      "ram_gb": 8,
+      "storage_gb": 128,
+      "screen_in": 10.9,
+      "stylus_support": true,
+      "battery_hr": 10.0,
+      "weight_g": 510
+    },
+    "intended_use": [
+      "note_taking",
+      "study",
+      "drawing"
+    ],
+    "features": [
+      "Palm Rejection Stylus",
+      "Split Screen Note Assistant"
+    ],
+    "in_stock": true,
+    "rating": 4.4
+  },
+  {
+    "product_id": "TAB-0009",
+    "name": "Apex Studio Slate 13",
+    "brand": "Apex",
+    "category": "tablet",
+    "price_inr": 62000,
+    "specs": {
+      "chipset": "Snapdragon 870",
+      "ram_gb": 8,
+      "storage_gb": 256,
+      "screen_in": 12.6,
+      "stylus_support": true,
+      "weight_g": 565
+    },
+    "intended_use": [
+      "drawing",
+      "productivity"
+    ],
+    "features": [
+      "OLED 100% DCI-P3 Panel",
+      "Magnetic Keyboard Pins"
+    ],
+    "in_stock": true,
+    "rating": 4.6
+  },
+  {
+    "product_id": "TAB-0010",
+    "name": "Titan Rugged Slate 10",
+    "brand": "Titan",
+    "category": "tablet",
+    "price_inr": 39999,
+    "specs": {
+      "chipset": "Helio G99",
+      "ram_gb": 8,
+      "storage_gb": 128,
+      "screen_in": 10.1,
+      "stylus_support": false,
+      "battery_hr": 14.0,
+      "weight_g": 850
+    },
+    "intended_use": [
+      "productivity",
+      "entertainment"
+    ],
+    "features": [
+      "Drop Proof Rubberized Corners",
+      "Glove Touch Screen"
+    ],
+    "in_stock": true,
+    "rating": null
+  },
+  {
+    "product_id": "TAB-0011",
+    "name": "Velo Tab Pro 11",
+    "brand": "Velo",
+    "category": "tablet",
+    "price_inr": 58000,
+    "specs": {
+      "chipset": "Snapdragon 8 Gen 2",
+      "ram_gb": 12,
+      "storage_gb": 256,
+      "screen_in": 11.2,
+      "stylus_support": true,
+      "battery_hr": 11.5,
+      "weight_g": 520
+    },
+    "intended_use": [
+      "productivity",
+      "note_taking",
+      "drawing"
+    ],
+    "features": [
+      "PC-Level File Management",
+      "Smart Cover Kickstand"
+    ],
+    "in_stock": true,
+    "rating": 4.6
+  },
+  {
+    "product_id": "TAB-0012",
+    "name": "Zenit Kids Pad 8",
+    "brand": "Zenit",
+    "category": "tablet",
+    "price_inr": 9999,
+    "specs": {
+      "chipset": "Allwinner A523",
+      "ram_gb": 3,
+      "storage_gb": 32,
+      "screen_in": 8.0,
+      "stylus_support": false,
+      "battery_hr": 6.5,
+      "weight_g": 340
+    },
+    "intended_use": [
+      "study",
+      "entertainment"
+    ],
+    "features": [
+      "Bumper Case Included",
+      "Parental Control Lock"
+    ],
+    "in_stock": true,
+    "rating": 3.8
+  },
+  {
+    "product_id": "TAB-0013",
+    "name": "Pulse Pad Mini 9",
+    "brand": "Pulse",
+    "category": "tablet",
+    "price_inr": 32999,
+    "specs": {
+      "chipset": "A15 Bionic equivalent",
+      "ram_gb": 4,
+      "storage_gb": 64,
+      "screen_in": 8.3,
+      "stylus_support": true,
+      "battery_hr": 9.0,
+      "weight_g": 293
+    },
+    "intended_use": [
+      "note_taking",
+      "entertainment"
+    ],
+    "features": [
+      "Pocketable Form Factor",
+      "True Tone Display"
+    ],
+    "in_stock": true,
+    "rating": 4.7
+  },
+  {
+    "product_id": "TAB-0014",
+    "name": "Nexa Office Tab 12",
+    "brand": "Nexa",
+    "category": "tablet",
+    "price_inr": 22999,
+    "specs": {
+      "chipset": "Unisoc T616",
+      "ram_gb": 8,
+      "storage_gb": 128,
+      "screen_in": 12.0,
+      "stylus_support": false,
+      "battery_hr": 8.5,
+      "weight_g": 590
+    },
+    "intended_use": [
+      "entertainment",
+      "study"
+    ],
+    "features": [
+      "2K IPS Screen",
+      "Dual Microphones"
+    ],
+    "in_stock": true,
+    "rating": 4.1
+  },
+  {
+    "product_id": "TAB-0015",
+    "name": "Horizon Pad S 11",
+    "brand": "Horizon",
+    "category": "tablet",
+    "price_inr": 42000,
+    "specs": {
+      "chipset": "Snapdragon 778G",
+      "ram_gb": 6,
+      "storage_gb": 128,
+      "screen_in": 11.0,
+      "stylus_support": true,
+      "battery_hr": 10.0,
+      "weight_g": 505
+    },
+    "intended_use": [
+      "note_taking",
+      "study",
+      "drawing"
+    ],
+    "features": [
+      "Low Latency Magnetic Pen",
+      "Samsung DeX Support"
+    ],
+    "in_stock": true,
+    "rating": 4.4
+  },
+  {
+    "product_id": "MON-0001",
+    "name": "Ocular CodeView 27",
+    "brand": "Ocular",
+    "category": "monitor",
+    "price_inr": 28999,
+    "specs": {
+      "size_in": 27.0,
+      "resolution": "2560x1440",
+      "refresh_hz": 75,
+      "panel": "IPS",
+      "ports": [
+        "HDMI 2.0",
+        "DisplayPort 1.4",
+        "USB-C 65W"
+      ]
+    },
+    "intended_use": [
+      "programming",
+      "office",
+      "general"
+    ],
+    "features": [
+      "90W USB-C Power Delivery",
+      "Pivot 90-degree Portrait Stand",
+      "Anti-Flicker"
+    ],
+    "in_stock": true,
+    "rating": 4.7
+  },
+  {
+    "product_id": "MON-0002",
+    "name": "Apex Gaming Pro 27",
+    "brand": "Apex",
+    "category": "monitor",
+    "price_inr": 34999,
+    "specs": {
+      "size_in": 27.0,
+      "resolution": "2560x1440",
+      "refresh_hz": 165,
+      "panel": "IPS",
+      "ports": [
+        "HDMI 2.1",
+        "DisplayPort 1.4",
+        "Audio Out"
+      ]
+    },
+    "intended_use": [
+      "gaming",
+      "programming"
+    ],
+    "features": [
+      "1ms GtG Response",
+      "NVIDIA G-Sync Compatible",
+      "HDR400"
+    ],
+    "in_stock": true,
+    "rating": 4.8
+  },
+  {
+    "product_id": "MON-0003",
+    "name": "Lumina ColorMaster 32",
+    "brand": "Lumina",
+    "category": "monitor",
+    "price_inr": 64999,
+    "specs": {
+      "size_in": 32.0,
+      "resolution": "3840x2160",
+      "refresh_hz": 60,
+      "panel": "IPS",
+      "ports": [
+        "HDMI 2.1",
+        "DisplayPort 1.4",
+        "USB-C 90W",
+        "USB-A Hub"
+      ]
+    },
+    "intended_use": [
+      "design",
+      "office",
+      "programming"
+    ],
+    "features": [
+      "100% sRGB & 98% DCI-P3",
+      "Factory Color Calibration Report",
+      "Integrated KVM Switch"
+    ],
+    "in_stock": true,
+    "rating": 4.8
+  },
+  {
+    "product_id": "MON-0004",
+    "name": "Horizon UltraCurve 34",
+    "brand": "Horizon",
+    "category": "monitor",
+    "price_inr": 48999,
+    "specs": {
+      "size_in": 34.0,
+      "resolution": "3440x1440",
+      "refresh_hz": 144,
+      "panel": "VA",
+      "ports": [
+        "HDMI 2.0",
+        "DisplayPort 1.4",
+        "USB Hub"
+      ]
+    },
+    "intended_use": [
+      "gaming",
+      "programming",
+      "office"
+    ],
+    "features": [
+      "1500R Curvature",
+      "21:9 Ultrawide Aspect",
+      "Picture-by-Picture Mode"
+    ],
+    "in_stock": true,
+    "rating": 4.6
+  },
+  {
+    "product_id": "MON-0005",
+    "name": "Zenit OfficeClear 24",
+    "brand": "Zenit",
+    "category": "monitor",
+    "price_inr": 9499,
+    "specs": {
+      "size_in": 23.8,
+      "resolution": "1920x1080",
+      "refresh_hz": 75,
+      "panel": "IPS",
+      "ports": [
+        "HDMI 1.4",
+        "VGA"
+      ]
+    },
+    "intended_use": [
+      "office",
+      "general"
+    ],
+    "features": [
+      "3-Side Frameless Bezel",
+      "Low Blue Light Certified"
+    ],
+    "in_stock": true,
+    "rating": 4.2
+  },
+  {
+    "product_id": "MON-0006",
+    "name": "Nova OLED Gaming 27",
+    "brand": "Nova",
+    "category": "monitor",
+    "price_inr": 72000,
+    "specs": {
+      "size_in": 27.0,
+      "resolution": "2560x1440",
+      "refresh_hz": 240,
+      "panel": "OLED",
+      "ports": [
+        "HDMI 2.1",
+        "DisplayPort 1.4",
+        "USB-C"
+      ]
+    },
+    "intended_use": [
+      "gaming",
+      "design"
+    ],
+    "features": [
+      "True 0.03ms Response Time",
+      "Infinite Contrast Ratio",
+      "Anti-Burn-In Pixel Shift"
+    ],
+    "in_stock": false,
+    "rating": 4.9
+  },
+  {
+    "product_id": "MON-0007",
+    "name": "Nexa Essential 24",
+    "brand": "Nexa",
+    "category": "monitor",
+    "price_inr": 7999,
+    "specs": {
+      "size_in": 24.0,
+      "resolution": "1920x1080",
+      "refresh_hz": 60,
+      "panel": "VA",
+      "ports": [
+        "HDMI 1.4",
+        "Audio Out"
+      ]
+    },
+    "intended_use": [
+      "office",
+      "general"
+    ],
+    "features": [
+      "High Contrast 3000:1",
+      "VESA 100x100 Wall Mountable"
+    ],
+    "in_stock": true,
+    "rating": 4.0
+  },
+  {
+    "product_id": "MON-0008",
+    "name": "ByteCraft DualView 28",
+    "brand": "ByteCraft",
+    "category": "monitor",
+    "price_inr": 22999,
+    "specs": {
+      "size_in": 28.0,
+      "resolution": "3840x2160",
+      "refresh_hz": 60,
+      "panel": "IPS",
+      "ports": [
+        "HDMI 2.0",
+        "DisplayPort 1.2"
+      ]
+    },
+    "intended_use": [
+      "programming",
+      "office"
+    ],
+    "features": [
+      "4K UHD Resolution",
+      "Dual Input Split Screen"
+    ],
+    "in_stock": true,
+    "rating": 4.3
+  },
+  {
+    "product_id": "MON-0009",
+    "name": "Titan Industrial Panel 24",
+    "brand": "Titan",
+    "category": "monitor",
+    "price_inr": 18500,
+    "specs": {
+      "size_in": 24.0,
+      "resolution": "1920x1080",
+      "refresh_hz": 60,
+      "panel": "IPS",
+      "ports": [
+        "HDMI 1.4",
+        "DisplayPort 1.2",
+        "DVI"
+      ]
+    },
+    "intended_use": [
+      "office",
+      "general"
+    ],
+    "features": [
+      "IP54 Splash Resistant Bezel",
+      "24/7 Continuous Operation Rated"
+    ],
+    "in_stock": true,
+    "rating": null
+  },
+  {
+    "product_id": "MON-0010",
+    "name": "Ocular FastPlay 25",
+    "brand": "Ocular",
+    "category": "monitor",
+    "price_inr": 15999,
+    "specs": {
+      "size_in": 24.5,
+      "resolution": "1920x1080",
+      "refresh_hz": 165,
+      "panel": "IPS",
+      "ports": [
+        "HDMI 2.0",
+        "DisplayPort 1.2"
+      ]
+    },
+    "intended_use": [
+      "gaming",
+      "general"
+    ],
+    "features": [
+      "0.5ms Response Mode",
+      "AMD FreeSync Premium"
+    ],
+    "in_stock": true,
+    "rating": 4.5
+  },
+  {
+    "product_id": "MON-0011",
+    "name": "Kestrel DesignView 27",
+    "brand": "Kestrel",
+    "category": "monitor",
+    "price_inr": 38999,
+    "specs": {
+      "size_in": 27.0,
+      "resolution": "3840x2160",
+      "refresh_hz": 60,
+      "panel": "IPS",
+      "ports": [
+        "HDMI 2.0",
+        "DisplayPort 1.4",
+        "USB-C 65W"
+      ]
+    },
+    "intended_use": [
+      "design",
+      "programming",
+      "office"
+    ],
+    "features": [
+      "Hardware Calibration LUT",
+      "Ergonomic Height Swivel Stand"
+    ],
+    "in_stock": true,
+    "rating": 4.7
+  },
+  {
+    "product_id": "MON-0012",
+    "name": "Horizon Curved Gaming 32",
+    "brand": "Horizon",
+    "category": "monitor",
+    "price_inr": 29999,
+    "specs": {
+      "size_in": 31.5,
+      "resolution": "2560x1440",
+      "refresh_hz": 144,
+      "panel": "VA",
+      "ports": [
+        "HDMI 2.0",
+        "DisplayPort 1.4"
+      ]
+    },
+    "intended_use": [
+      "gaming",
+      "office"
+    ],
+    "features": [
+      "1000R Deep Curve",
+      "HDR10 Support"
+    ],
+    "in_stock": true,
+    "rating": 4.4
+  },
+  {
+    "product_id": "MON-0013",
+    "name": "Lumina WorkStation 27",
+    "brand": "Lumina",
+    "category": "monitor",
+    "price_inr": 24999,
+    "specs": {
+      "size_in": 27.0,
+      "resolution": "2560x1440",
+      "refresh_hz": 75,
+      "panel": "IPS",
+      "ports": [
+        "HDMI 1.4",
+        "DisplayPort 1.2",
+        "USB Hub"
+      ]
+    },
+    "intended_use": [
+      "office",
+      "programming"
+    ],
+    "features": [
+      "QHD Crisp Text Rendering",
+      "Eye-Care Ambient Light Sensor"
+    ],
+    "in_stock": true,
+    "rating": 4.4
+  },
+  {
+    "product_id": "MON-0014",
+    "name": "Apex eSports 240",
+    "brand": "Apex",
+    "category": "monitor",
+    "price_inr": 26999,
+    "specs": {
+      "size_in": 24.5,
+      "resolution": "1920x1080",
+      "refresh_hz": 240,
+      "panel": "IPS",
+      "ports": [
+        "HDMI 2.0",
+        "DisplayPort 1.4"
+      ]
+    },
+    "intended_use": [
+      "gaming"
+    ],
+    "features": [
+      "240Hz Competitive Refresh",
+      "Black Equalizer Darkness Booster"
+    ],
+    "in_stock": true,
+    "rating": 4.6
+  },
+  {
+    "product_id": "MON-0015",
+    "name": "Zenit UltraSlim 27",
+    "brand": "Zenit",
+    "category": "monitor",
+    "price_inr": 14499,
+    "specs": {
+      "size_in": 27.0,
+      "resolution": "1920x1080",
+      "refresh_hz": 100,
+      "panel": "IPS",
+      "ports": [
+        "HDMI 1.4",
+        "VGA"
+      ]
+    },
+    "intended_use": [
+      "office",
+      "general"
+    ],
+    "features": [
+      "7.5mm Ultra-Slim Body",
+      "100Hz Smooth Office Scrolling"
+    ],
+    "in_stock": true,
+    "rating": 4.2
+  }
+]
