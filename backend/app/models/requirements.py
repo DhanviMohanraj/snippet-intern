@@ -7,6 +7,7 @@ and safe removal tracking.
 
 from __future__ import annotations
 
+from enum import Enum
 from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -315,3 +316,95 @@ class RequirementsDelta(BaseModel):
                 )
             cleaned.append(canonical)
         return cleaned
+
+
+class Contradiction(BaseModel):
+    """Represents a logical incompatibility between accumulated requirement constraints."""
+
+    model_config = ConfigDict(extra="forbid", validate_assignment=True)
+
+    code: str = Field(description="Programmatic contradiction identifier (e.g. 'BUDGET_MIN_EXCEEDS_MAX')")
+    fields: list[str] = Field(description="Field names directly involved in the contradiction")
+    message: str = Field(description="Concise, sanitized explanation of the contradiction")
+    severity: Literal["error", "warning"] = Field(default="error", description="Severity level ('error' or 'warning')")
+    requires_clarification: bool = Field(default=True, description="Whether conversational clarification is required")
+
+    @field_validator("code", "message")
+    @classmethod
+    def validate_non_empty_strings(cls, v: str, info: Any) -> str:
+        if not isinstance(v, str) or not v.strip():
+            raise ValueError(f"'{info.field_name}' must be a non-empty string.")
+        return v.strip()
+
+    @field_validator("fields")
+    @classmethod
+    def validate_fields_list(cls, v: list[str]) -> list[str]:
+        if not isinstance(v, list) or not v:
+            raise ValueError("'fields' must be a non-empty list of field names.")
+        cleaned = [f.strip() for f in v if isinstance(f, str) and f.strip()]
+        if not cleaned:
+            raise ValueError("'fields' must contain at least one non-empty field name.")
+        return cleaned
+
+
+class PolicyAction(str, Enum):
+    """Next conversational action determined by the clarification policy."""
+
+    ASK = "ASK"
+    CLARIFY_CONFLICT = "CLARIFY_CONFLICT"
+    REDIRECT = "REDIRECT"
+    NO_MATCH = "NO_MATCH"
+    RECOMMEND = "RECOMMEND"
+
+
+class PolicyDecision(BaseModel):
+    """Deterministic decision emitted by the clarification and slot-filling policy."""
+
+    model_config = ConfigDict(extra="forbid", validate_assignment=True)
+
+    action: PolicyAction = Field(description="Policy action to execute")
+    question: str | None = Field(default=None, description="Concise question or explanation for the user")
+    slot: str | None = Field(default=None, description="Targeted requirements slot, if action is ASK")
+    reason: str | None = Field(default=None, description="Machine-readable code explaining the decision")
+    contradictions: list[Contradiction] = Field(
+        default_factory=list, description="Relevant contradictions if action is CLARIFY_CONFLICT"
+    )
+    metadata: dict[str, Any] = Field(
+        default_factory=dict, description="Arbitrary context for telemetry and downstream integration"
+    )
+
+    @field_validator("action", mode="before")
+    @classmethod
+    def validate_action(cls, v: Any) -> PolicyAction:
+        if isinstance(v, PolicyAction):
+            return v
+        if isinstance(v, str):
+            v_clean = v.strip().upper()
+            try:
+                return PolicyAction(v_clean)
+            except ValueError:
+                raise ValueError(
+                    f"Invalid policy action '{v}'. Allowed actions: {[a.value for a in PolicyAction]}."
+                )
+        raise ValueError(f"Invalid policy action type: {type(v)}.")
+
+    @property
+    def is_ask(self) -> bool:
+        return self.action == PolicyAction.ASK
+
+    @property
+    def is_recommend(self) -> bool:
+        return self.action == PolicyAction.RECOMMEND
+
+    @property
+    def is_clarify_conflict(self) -> bool:
+        return self.action == PolicyAction.CLARIFY_CONFLICT
+
+    @property
+    def is_redirect(self) -> bool:
+        return self.action == PolicyAction.REDIRECT
+
+    @property
+    def is_no_match(self) -> bool:
+        return self.action == PolicyAction.NO_MATCH
+

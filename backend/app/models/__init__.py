@@ -9,9 +9,20 @@ from app.models.api import (
     ProductListResponse,
 )
 from app.models.product import Category, CategorySummary, Product
+from app.models.ranking import (
+    CandidateEvaluation,
+    CandidateSearchResult,
+    ConstraintCheck,
+    ConstraintStatus,
+    RankedCandidate,
+    ScoreBreakdown,
+)
 from app.models.requirements import (
+    Contradiction,
     HardConstraints,
     Message,
+    PolicyAction,
+    PolicyDecision,
     RECOGNIZED_PREFERENCES,
     Requirements,
     RequirementsDelta,
@@ -19,8 +30,13 @@ from app.models.requirements import (
 )
 
 __all__ = [
+    "CandidateEvaluation",
+    "CandidateSearchResult",
     "Category",
     "CategorySummary",
+    "ConstraintCheck",
+    "ConstraintStatus",
+    "Contradiction",
     "DependencyStatus",
     "ErrorDetail",
     "ErrorResponse",
@@ -28,10 +44,14 @@ __all__ = [
     "HealthResponse",
     "Message",
     "OverallHealthStatus",
+    "PolicyAction",
+    "PolicyDecision",
     "Product",
     "ProductListResponse",
     "RECOGNIZED_PREFERENCES",
+    "RankedCandidate",
     "Requirements",
     "RequirementsDelta",
+    "ScoreBreakdown",
     "VALID_REMOVABLE_FIELDS",
 ]

@@ -62,9 +62,10 @@ async def extract(
     raw_delta = await llm.complete_json(
         messages=chat_messages,
         schema=RequirementsDelta,
-        max_tokens=600,
+        max_tokens=1500,
         temperature=0.1,
     )
+
 
     # Apply pure Python deterministic normalization
     normalized_delta = normalize(raw_delta)
