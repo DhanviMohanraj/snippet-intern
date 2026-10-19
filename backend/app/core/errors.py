@@ -56,6 +56,61 @@ class DatabaseConnectionError(AppError):
         )
 
 
+class ConversationNotFoundError(AppError):
+    """Raised when a requested conversation ID does not exist."""
+
+    def __init__(self, message: str = "Conversation not found.") -> None:
+        super().__init__(
+            code="CONVERSATION_NOT_FOUND",
+            status=status.HTTP_404_NOT_FOUND,
+            message=message,
+        )
+
+
+class ConversationOwnershipError(AppError):
+    """Raised when a user attempts to access a conversation they do not own."""
+
+    def __init__(self, message: str = "Access forbidden: you do not own this conversation.") -> None:
+        super().__init__(
+            code="FORBIDDEN_CONVERSATION_ACCESS",
+            status=status.HTTP_403_FORBIDDEN,
+            message=message,
+        )
+
+
+class InvalidConversationIdError(AppError):
+    """Raised when a conversation ID does not conform to required syntax."""
+
+    def __init__(self, message: str = "Invalid conversation ID format.") -> None:
+        super().__init__(
+            code="INVALID_CONVERSATION_ID",
+            status=status.HTTP_400_BAD_REQUEST,
+            message=message,
+        )
+
+
+class InvalidMessageError(AppError):
+    """Raised when an incoming user chat message is invalid."""
+
+    def __init__(self, message: str = "User message cannot be empty or exceed length limits.") -> None:
+        super().__init__(
+            code="INVALID_MESSAGE",
+            status=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            message=message,
+        )
+
+
+class ConcurrentUpdateError(AppError):
+    """Raised when a conversation version conflict occurs during concurrent updates."""
+
+    def __init__(self, message: str = "Conversation was modified concurrently by another request. Please retry.") -> None:
+        super().__init__(
+            code="CONCURRENT_UPDATE_CONFLICT",
+            status=status.HTTP_409_CONFLICT,
+            message=message,
+        )
+
+
 def get_request_id(request: Request) -> str:
     """Retrieve existing request ID from request state or return a fallback."""
     if hasattr(request.state, "request_id") and request.state.request_id:

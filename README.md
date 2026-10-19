@@ -108,6 +108,33 @@ Rather than allowing an LLM to hallucinate specifications or prices, the agent u
 - End-to-end coordinator `search_and_rank()` emitting structured `CandidateSearchResult` with full visibility into passed, excluded, and unverifiable candidates.
 - 32 new automated offline tests (288 total suite) with zero LLM calls or network requests.
 
+### Module 9: Response Generation & Grounded Validation Engine
+- Structured Pydantic response models (`ProductRecommendation`, `RecommendationResponse`, `LLMRecommendationPayload`, `LLMProductExplanation`) strictly decoupling authoritative catalogue truth from generated explanatory text.
+- Generates tailored, natural-language recommendation explanations using Groq (`generate_recommendation_response()`) grounded strictly in Module 8 ranked candidates.
+- Pure Python deterministic validation (`validate_recommendation_response()`):
+  - Enforces authoritative product identity: rejects hallucinated IDs, unranked products, and hard-constraint failures.
+  - Enforces Module 8 ranking order invariance: LLM cannot reorder candidates or modify rank scores.
+  - Copies authoritative prices, specs, and metadata directly from catalogue records.
+  - Grounds numerical claims via regex contradiction checking (prices, RAM, storage, discrete GPUs, battery runtime, monitor weight).
+  - Automatically repairs ungrounded claims with safe, deterministic fallbacks in $O(1)$ time without infinite LLM loops.
+- Deterministic offline fallbacks (`build_fallback_recommendation_response()`) for API timeouts, schema validation errors, malformed JSON, and zero-match searches.
+- 23 new automated offline tests (311 total suite) verifying generation, validation, repairs, and offline isolation.
+
+### Module 10: Agent Orchestration Pipeline & Conversation API
+- End-to-end multi-turn pipeline (`run_pipeline()`) coordinating requirements extraction (Module 5), state merging & contradiction resolution (Module 6), clarification policy (Module 7), candidate retrieval & scoring (Module 8), and grounded recommendation response generation (Module 9).
+- Persistent conversation state management in MongoDB collection `conversations` via `ConversationRepository`:
+  - Enforces atomic state persistence and optimistic concurrency control with version locking (`version`).
+  - Strict ownership access control (`X-User-ID` header validation) rejecting unauthorized access with 403 Forbidden.
+  - Complete chronological message history storage without leaking internal scratchpads or hidden chains of thought.
+  - In-memory conversation repository (`InMemoryConversationRepository`) for 100% offline test isolation.
+- RESTful Conversation API endpoints under `/api/v1/conversations`:
+  - `POST /api/v1/conversations`: Initialize conversation session.
+  - `POST /api/v1/conversations/{id}/messages`: Submit message, advance turn, and execute full agent pipeline.
+  - `GET /api/v1/conversations/{id}`: Inspect current accumulated requirements and turn metadata.
+  - `GET /api/v1/conversations/{id}/messages`: Retrieve chronological message history.
+  - `DELETE /api/v1/conversations/{id}`: Delete conversation session and associated history.
+- 24 new automated offline tests (335 total suite) covering the complete conversation lifecycle, revisions, turn limits, error envelopes, and concurrency.
+
 ---
 
 ## 4. Repository Structure
@@ -119,38 +146,47 @@ snippet-intern/
 │   │   ├── __init__.py          # Application package root
 │   │   ├── main.py              # FastAPI app factory, lifespan, and router mounting
 │   │   ├── api/
-│   │   │   ├── __init__.py      # Export health_router, products_router
+│   │   │   ├── __init__.py      # Export health_router, products_router, conversations_router
 │   │   │   ├── products.py      # Product listing, filtering, detail, & categories
-│   │   │   └── health.py        # Independent MongoDB & Groq health check
+│   │   │   ├── health.py        # Independent MongoDB & Groq health check
+│   │   │   └── v1/
+│   │   │       ├── __init__.py
+│   │   │       └── conversations.py # Module 10 conversational chat API endpoints
 │   │   ├── core/
 │   │   │   ├── __init__.py
 │   │   │   ├── config.py        # Pydantic Settings & environment validation
 │   │   │   ├── logging.py       # Structured logging & secret scrubbing filter
-│   │   │   └── errors.py        # AppError hierarchy, request IDs & handlers
+│   │   │   └── errors.py        # AppError hierarchy, request IDs & custom handlers
 │   │   ├── models/
-│   │   │   ├── __init__.py      # Export domain, ranking, and API response models
+│   │   │   ├── __init__.py      # Export domain, ranking, response, and conversation models
 │   │   │   ├── product.py       # Pydantic Product model & category spec schemas
 │   │   │   ├── ranking.py       # CandidateEvaluation, ScoreBreakdown, RankedCandidate, CandidateSearchResult
 │   │   │   ├── requirements.py  # Requirements, RequirementsDelta, HardConstraints, Contradiction, PolicyDecision
+│   │   │   ├── response.py      # ProductRecommendation, RecommendationResponse, LLMRecommendationPayload (Module 9)
+│   │   │   ├── conversation.py  # ConversationState, ConversationMessage, Turn Response schemas (Module 10)
 │   │   │   └── api.py           # ProductListResponse, HealthResponse, ErrorResponse
 │   │   ├── db/
 │   │   │   ├── __init__.py
 │   │   │   ├── mongo.py         # Async Motor connection manager & ping check
-│   │   │   └── repositories.py  # Asynchronous ProductRepository
+│   │   │   ├── repositories.py  # Asynchronous ProductRepository
+│   │   │   └── conversation_repository.py # Conversation state repository with version locking (Module 10)
 │   │   ├── llm/
 │   │   │   ├── __init__.py      # Module 4 exports (LLMClient, GroqClient, FakeLLMClient, errors)
 │   │   │   ├── client.py        # GroqClient implementation & retry logic
 │   │   │   ├── errors.py        # Sanitized LLM exception hierarchy
 │   │   │   ├── fake.py          # Deterministic offline FakeLLMClient
-│   │   │   └── prompts.py       # Extraction system prompt & context formatter (Module 5)
+│   │   │   └── prompts.py       # Prompts: extraction (Mod 5) & recommendation explanation (Mod 9)
 │   │   └── agent/
-│   │       ├── __init__.py      # Agent package exports (Modules 5-8)
-│   │       ├── extract.py       # Asynchronous NLU requirements extractor
+│   │       ├── __init__.py      # Agent package exports (Modules 5-10)
+│   │       ├── extract.py       # Asynchronous NLU requirements extractor (Module 5)
 │   │       ├── normalize.py     # Pure Python deterministic normalization & alias resolver
 │   │       ├── merge.py         # Multi-turn state merger & contradiction detector (Module 6)
 │   │       ├── policy.py        # Clarification policy & slot-filling engine (Module 7)
 │   │       ├── retrieval.py     # Candidate retrieval via ProductRepository (Module 8)
 │   │       ├── ranking.py       # Hard filtering, scoring & ranking engine (Module 8)
+│   │       ├── respond.py       # Recommendation generation coordinator (Module 9)
+│   │       ├── response_validator.py # Deterministic validation, repair & fallback engine (Module 9)
+│   │       ├── pipeline.py      # End-to-end multi-module agent coordinator (Module 10)
 │   │       └── examples.py      # 15 canonical handwritten extraction scenarios
 │   ├── data/
 │   │   └── products.json        # 120-item synthetic product catalogue
@@ -171,7 +207,9 @@ snippet-intern/
 │   │   ├── test_merge.py        # Module 6 state merging & contradiction resolution tests
 │   │   ├── test_policy.py       # Module 7 clarification policy & slot-filling tests
 │   │   ├── test_retrieval.py    # Module 8 candidate retrieval tests
-│   │   └── test_ranking.py      # Module 8 filtering, scoring, and ranking tests
+│   │   ├── test_ranking.py      # Module 8 filtering, scoring, and ranking tests
+│   │   ├── test_respond.py      # Module 9 response generation & validation tests
+│   │   └── test_conversations.py# Module 10 pipeline and conversation API tests
 │   ├── pytest.ini               # Pytest configuration
 │   └── requirements.txt         # Bounded backend Python dependencies
 ├── frontend/
@@ -884,7 +922,226 @@ Outputs a structured `CandidateSearchResult` providing:
 
 ---
 
-## 15. Running the Application
+## 15. Module 9 — Response Generation & Grounded Validation Engine
+
+Module 9 bridges deterministic ranking results and natural language recommendations. Following the architecture principle:
+> *"The LLM explains; deterministic code validates and enforces."*
+
+### 1. Structured Response Domain Models (`app/models/response.py`)
+
+- **Authoritative Separation:** All immutable catalogue attributes (`product_id`, `name`, `brand`, `category`, `price_inr`, `rating`, `verified_specs`, `features`, `overall_score`) and ranking order are strictly owned and populated by deterministic code.
+- **Qualitative Explanation Layer:** The LLM produces only qualitative explanation fields:
+  - `reasoning`: Tailored explanation linking the user's specific use cases and budget to product strengths.
+  - `advantages`: Verified product strengths supported by catalogue data.
+  - `trade_offs`: Honest limitations supported by catalogue specs (e.g., integrated graphics, device weight).
+  - `match_explanation`: Description of satisfied constraints and preferences.
+  - `limitations`: Missing or unverifiable catalogue information.
+  - `follow_up_question`: Optional natural conversational follow-up for the user.
+- **Top-Level Envelope (`RecommendationResponse`):**
+  - `message`: Introductory natural-language text.
+  - `recommendations`: Ordered list of `ProductRecommendation` objects strictly mirroring Module 8 ranking order.
+  - `total_matching`: Count of eligible candidates.
+  - `is_fallback`: Boolean indicating whether deterministic fallback was activated.
+  - `fallback_reason`: Audit trail describing why fallback was invoked.
+  - `has_matches`: Boolean indicating whether eligible products were found.
+
+### 2. Response Generator Coordinator (`app/agent/respond.py`)
+
+```python
+async def generate_recommendation_response(
+    requirements: Requirements,
+    search_result: CandidateSearchResult,
+    llm_client: LLMClient | None = None,
+) -> RecommendationResponse:
+```
+
+- **Empty Match Bypass:** If `search_result.has_matches=False`, instantly returns a structured no-match response asking the user to adjust criteria without calling the LLM.
+- **Offline / Missing LLM:** Safely falls back to `build_fallback_recommendation_response()` if `llm_client is None`.
+- **Compact Prompt Construction:** Contextualizes candidates with verified catalogue specs, passed constraints, and score breakdowns using `build_recommendation_prompt()`. System instructions explicitly declare that product catalogue context is data, not instructions.
+- **Schema Validation & Fallback:** Calls `llm_client.complete_json(schema=LLMRecommendationPayload)` with bounded token and temperature settings. Catches all provider errors, schema validation errors, and malformed outputs, routing safely to deterministic fallbacks.
+
+### 3. Deterministic Validation & Repair (`app/agent/response_validator.py`)
+
+```python
+def validate_recommendation_response(
+    payload: LLMRecommendationPayload,
+    search_result: CandidateSearchResult,
+    requirements: Requirements,
+) -> RecommendationResponse:
+```
+
+- **Product Identity Enforcement:** Verifies that every product ID exists in `search_result.ranked_candidates`. Rejects hallucinated IDs, excluded candidates, and products not returned by the current search.
+- **Ranking Order Invariance:** Iterates through `search_result.ranked_candidates` in authoritative order, ensuring the LLM cannot reorder candidates or modify ranking scores.
+- **Authoritative Fact Populating:** Prices and specifications are copied directly from the catalogue product record; generated prices or specs cannot override catalogue data.
+- **Grounding Contradiction Detection (`check_claim_contradictions`):**
+  - **Prices:** Rejects claims mentioning prices differing from the catalogue price (while allowing user budget bounds and explicit savings/discount claims).
+  - **RAM & Storage:** Rejects numerical claims contradicting catalogue memory or storage sizes.
+  - **Discrete GPU:** Flags dedicated GPU claims (RTX/GTX) on laptops with integrated graphics.
+  - **Battery Runtime:** Flags hourly runtime claims on devices where `battery_hr` is missing.
+  - **Monitor Weight:** Flags weight claims on monitors where weight is not tracked in the catalogue.
+- **Bounded Repair Semantics:** If an explanation contains factual contradictions, it is deterministically replaced with `build_fallback_product_recommendation()` in $O(1)$ time without extra LLM round-trips.
+
+---
+
+## 16. Module 10 — Agent Pipeline & Conversation API
+
+Module 10 integrates Modules 1–9 into an end-to-end multi-turn conversational recommendation system.
+
+### 1. Agent Orchestration Pipeline (`app/agent/pipeline.py`)
+
+Coordinates user interactions across all domain services:
+
+```mermaid
+flowchart TD
+    A[User Message + ConversationState] --> B[Module 5: Requirements Extraction via LLM / Fallback]
+    B --> C[Module 6: Requirements Merge & Contradiction Detection]
+    C --> D[Module 7: Clarification Policy Engine]
+    D -- ASK --> E[Return Clarification Question + Update asked_slots]
+    D -- CLARIFY_CONFLICT --> F[Return Contradiction Explanation]
+    D -- REDIRECT --> G[Return Off-Topic Redirection]
+    D -- NO_MATCH --> H[Return Unsupported / Turn Limit Message]
+    D -- RECOMMEND --> I[Module 8: Candidate Retrieval & Scoring]
+    I --> J[Module 9: Grounded Response Generation & Validation]
+    J --> K[Return Ranked Recommendations + Grounded Explanations]
+    E --> L[Persist State & Messages to MongoDB]
+    F --> L
+    G --> L
+    H --> L
+    K --> L
+```
+
+### 2. Conversation State Model & Persistence (`app/models/conversation.py`, `app/db/conversation_repository.py`)
+
+- **Collection:** MongoDB `conversations` collection with indexed `user_id` and `updated_at`.
+- **Atomic Persistence & Concurrency:** Optimistic version locking via `version: int`. If concurrent requests modify the same conversation version, `ConcurrentUpdateError` (HTTP 409 Conflict) is raised.
+- **Ownership Access Control:** Each conversation records `user_id` (optional). If an authenticated or user-scoped conversation is accessed with a mismatched `X-User-ID`, `ConversationOwnershipError` (HTTP 403 Forbidden) is returned.
+- **Message History:** Stores chronological user and assistant message records without exposing internal scratchpads or hidden chains of thought.
+
+### 3. RESTful API Endpoints (`app/api/v1/conversations.py`)
+
+| Method | Endpoint | Description | Status Code |
+|--------|----------|-------------|-------------|
+| `POST` | `/api/v1/conversations` | Initialize a new conversation session | `201 Created` |
+| `POST` | `/api/v1/conversations/{id}/messages` | Send message and execute full recommendation pipeline | `200 OK` |
+| `GET` | `/api/v1/conversations/{id}` | Inspect accumulated state, requirements, and turn count | `200 OK` |
+| `GET` | `/api/v1/conversations/{id}/messages` | Retrieve chronological message history | `200 OK` |
+| `DELETE` | `/api/v1/conversations/{id}` | Permanently delete conversation session and messages | `200 OK` |
+
+#### Example: Send Message Request
+```json
+POST /api/v1/conversations/4a1c5d9e-1234-4567-89ab-cdef01234567/messages
+Content-Type: application/json
+
+{
+  "message": "I need a lightweight laptop for programming under 70k"
+}
+```
+
+### 4. Multi-Turn Conversational Engine & Requirement Slot Registry (`app/agent/slots.py`)
+
+To deliver an intelligent, genuine multi-turn shopping consultation rather than premature recommendations, the agent enforces a deterministic **Requirement Slot Registry** and a strict **Recommendation Gate (`can_recommend`)**:
+
+```
+User Message + State
+         │
+         ▼
+[ Natural Language Slot Intent Parser ] ──▶ "you decide" (DELEGATED), "skip" (DECLINED), specs
+         │
+         ▼
+[ Module 5: Requirements Extraction ]  ──▶ extract_requirements(msg, llm_client)
+         │
+         ▼
+[ Module 6: Requirements Merge ]       ──▶ merge_requirements(current, delta)
+         │
+         ▼
+[ Category-Specific Slot Evaluation ]  ──▶ evaluate_slot_status()
+         │                                 (marks answered, declined, delegated, unknown)
+         ▼
+[ Module 7: Clarification Policy ]     ──▶ Check contradictions & missing mandatory slots
+         │
+   ┌─────┴───────────────────────────────────────────────────────┐
+   │ Missing Mandatory Slot (can_recommend=False)                │ All Mandatory Satisfied (can_recommend=True)
+   ▼                                                             ▼
+Ask Targeted Focused Question                            [ Module 8: Search & Rank ]
+(e.g., RAM for programming, GPU for gaming,                      │
+ form factor for headphones)                                     ▼
+(Bypasses Retrieval & Generation)                        [ Module 9: Grounded Generation ]
+                                                                 │
+                                                                 ▼
+                                                         Deliver Top Ranked Recommendations
+```
+
+#### Category Slot Specifications:
+- **Laptops:** `category`, `budget`, `use_cases`, `ram` (e.g., 8GB/16GB/32GB), `storage` (e.g., 512GB/1TB SSD). Workload-dependent: `gpu` (only if gaming or 3D/video editing), `ml_mode` (only if machine learning / AI). Optional: `portability_battery`.
+- **Smartphones:** `category`, `budget`, `use_cases`, `phone_storage` (128GB/256GB/512GB), `phone_priority` (camera vs. battery vs. gaming performance).
+- **Headphones:** `category`, `budget`, `use_cases`, `form_factor` (over-ear vs. in-ear / TWS). Optional: `anc`.
+- **Tablets:** `category`, `budget`, `use_cases`, `stylus_keyboard` (stylus or attachable keyboard support). Optional: `tablet_storage`.
+- **Monitors:** `category`, `budget`, `use_cases`, `display_specs` (screen size & resolution). Optional: `refresh_rate`.
+
+#### Slot Status & Intent Handling:
+- **`ANSWERED`:** Concrete value extracted and merged into `Requirements`.
+- **`DECLINED`:** User explicitly skipped, said *"I don't know"*, *"skip"*, or *"no preference"*. Considered resolved; will not be re-asked.
+- **`DELEGATED`:** User answered *"you decide"*, *"your choice"*, or *"up to you"*. Considered resolved using preference-neutral behavior.
+- **`NOT_APPLICABLE`:** Slot does not apply to the selected category or workload.
+
+#### Turn 1 Example: Intelligent Clarification
+```json
+POST /api/v1/conversations/4a1c5d9e-1234-4567-89ab-cdef01234567/messages
+Content-Type: application/json
+
+{
+  "message": "I need a laptop for college programming, Python development, and VS Code under ₹70,000"
+}
+```
+
+**Response (HTTP 200 OK):**
+```json
+{
+  "conversation_id": "4a1c5d9e-1234-4567-89ab-cdef01234567",
+  "message": "How much RAM do you need for your workload? (e.g., 8GB, 16GB, or 32GB — 16GB is recommended for programming and multitasking)",
+  "action": "ASK",
+  "turn_count": 1,
+  "requirements": {
+    "category": "laptop",
+    "use_cases": ["programming", "student"],
+    "budget_max_inr": 70000,
+    "budget_min_inr": null,
+    "hard": {
+      "min_ram_gb": null,
+      "min_storage_gb": null,
+      "min_battery_hr": null,
+      "max_weight_kg": null,
+      "requires_gpu": null,
+      "min_vram_gb": null,
+      "exclude_brands": [],
+      "in_stock": null
+    },
+    "preferences": {},
+    "ml_mode": null,
+    "asked_slots": ["ram"]
+  },
+  "requires_clarification": true,
+  "clarification_question": "How much RAM do you need for your workload? (e.g., 8GB, 16GB, or 32GB — 16GB is recommended for programming and multitasking)",
+  "unresolved_contradictions": [],
+  "recommendations": [],
+  "is_fallback": false,
+  "can_recommend": false,
+  "remaining_slots": ["ram", "storage"],
+  "slot_status": {
+    "category": "answered",
+    "budget": "answered",
+    "use_cases": "answered"
+  },
+  "metadata": {
+    "slot": "ram",
+    "decision_reason": "missing_ram"
+  }
+}
+```
+
+---
+
+## 17. Running the Application
 
 Ensure local MongoDB is running, then start Uvicorn from the `backend` directory:
 
@@ -905,7 +1162,7 @@ uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 
 ---
 
-## 16. Running Automated Tests
+## 18. Running Automated Tests
 
 Run the full automated test suite with pytest from the `backend` directory:
 
@@ -913,7 +1170,7 @@ Run the full automated test suite with pytest from the `backend` directory:
 python -m pytest -v
 ```
 
-All 288 unit and integration tests run cleanly offline without network calls or token consumption:
+All 360 unit and integration tests run cleanly offline without network calls or token consumption:
 - **`test_scaffold.py` (19 tests):** Module 1 settings validation, CORS, error formatting, lifespan startup/shutdown, secret masking.
 - **`test_product_model.py` (14 tests):** Product schema validation, price integer constraints, rating boundaries, category specification enforcement, contradictory spec rejection.
 - **`test_product_repository.py` (14 tests):** Async MongoDB queries, pagination, deterministic sorting, category/price/use-case filtering, category summary aggregation.
@@ -928,6 +1185,9 @@ All 288 unit and integration tests run cleanly offline without network calls or 
 - **`test_policy.py` (29 tests):** Module 7 deterministic clarification policy, slot-filling tracking, category-tailored questions, contradiction clarification, off-topic redirection, unsupported categories, turn limit enforcement, deterministic output, input immutability, and offline execution without LLM calls.
 - **`test_retrieval.py` (6 tests):** Module 8 category-restricted candidate retrieval, empty results handling, repository error propagation, candidate limit clamping, and input immutability.
 - **`test_ranking.py` (26 tests):** Module 8 hard-constraint evaluation (budget, RAM, storage, battery, weight, GPU, VRAM, brand exclusions, in-stock), 3-way pass/fail/unknown semantics, preference-based multi-factor scoring, normalized weights, deterministic tie-breaking, end-to-end `search_and_rank` pipeline, and structured no-match reports.
+- **`test_respond.py` (23 tests):** Module 9 response generation and validation: valid explanation mapping, ranking order preservation, use-case tailoring, unverified specification handling, empty/invalid JSON/API failure/schema error fallbacks, unknown product ID rejection, hard-constraint failure rejection, duplicate ID deduplication, price alteration rejection, spec modification rejection, numerical claim contradiction checking, battery runtime/monitor weight grounding, bounded non-recursive repair, adversarial prompt injection resistance, unranked candidate rejection, and deterministic fallback factual grounding.
+- **`test_conversations.py` (24 tests):** Module 10 pipeline and conversation API: conversation creation, message submission, pipeline extraction and merging, clarification for missing requirements, contradiction clarification, recommendation flow through Modules 8 and 9, multi-turn persistence, budget updates, category revisions, preference removals, off-topic redirection, no eligible product matches, invalid conversation IDs, missing conversations (404), unauthorized access (403), MongoDB errors (503), LLM errors and fallbacks, conversation history ordering, conversation deletion, turn-limit behavior, state leakage prevention, concurrent update detection (409), and API response schema validation.
+- **`test_multi_turn_policy.py` (25 tests):** Multi-Turn Clarification Engine: initial request asking follow-up rather than recommending, mandatory slot clarification, single-question delivery, 3-turn limit no longer triggering premature recommendation, progressive slot advancing, multi-answer extraction, answered slot preservation, budget revision retention, category switching slot recalculation, workload-dependent GPU inquiry, optional preference non-blocking behavior, explicit skip/decline handling, "you decide" delegation handling, contradiction blocking, off-topic redirection, spy verification preventing product retrieval and response generation during clarification, recommendation gate unlocking, safe no-match handling, cross-request state persistence, conversation isolation, category-specific slots (headphones, phones, tablets, monitors), and slot engine metadata integrity.
 
 ### Optional Manual Live Groq Extraction Check
 
@@ -940,7 +1200,7 @@ python -c "import asyncio; from app.llm.client import GroqClient; from app.agent
 
 ---
 
-## 15. Local MongoDB Troubleshooting
+## 19. Local MongoDB Troubleshooting
 
 If startup or seeding fails with `DatabaseConnectionError`:
 1. **Verify service status:** Ensure MongoDB Community service is active:
@@ -954,7 +1214,7 @@ If startup or seeding fails with `DatabaseConnectionError`:
 
 ---
 
-## 16. Security and Git Hygiene
+## 20. Security and Git Hygiene
 
 - **Root `.env` is Git-Ignored:** Sensitive keys, connection strings, and local configuration must never be committed. Verify with `git status --ignored`.
 - **`.env.example` is Trackable:** Kept up to date as a configuration contract for all team members.
@@ -964,7 +1224,7 @@ If startup or seeding fails with `DatabaseConnectionError`:
 
 ---
 
-## 17. Roadmap & Upcoming Modules
+## 21. Roadmap & Upcoming Modules
 
 - [x] **Module 1:** Project Scaffold, Async MongoDB Lifespan & Configuration
 - [x] **Module 2:** Electronics Product Catalogue & MongoDB Repository Layer
@@ -974,8 +1234,8 @@ If startup or seeding fails with `DatabaseConnectionError`:
 - [x] **Module 6:** Multi-Turn Requirements Merging & Contradiction Resolution
 - [x] **Module 7:** Clarification Policy & Slot-Filling Decision Engine
 - [x] **Module 8:** Candidate Filtering & Deterministic Multi-Factor Scoring
-- [ ] **Module 9:** Recommendation Explanation Synthesis Pipeline
-- [ ] **Module 10:** Chat Conversation API Endpoints & State Management
+- [x] **Module 9:** Recommendation Explanation Synthesis Pipeline
+- [x] **Module 10:** Chat Conversation API Endpoints & State Management
 - [ ] **Module 11:** React + Vite Conversational Frontend
 
 

@@ -372,6 +372,12 @@ class PolicyDecision(BaseModel):
     metadata: dict[str, Any] = Field(
         default_factory=dict, description="Arbitrary context for telemetry and downstream integration"
     )
+    can_recommend: bool = Field(
+        default=False, description="Whether the recommendation gate is unlocked"
+    )
+    remaining_slots: list[str] = Field(
+        default_factory=list, description="Remaining mandatory slots before recommendation is allowed"
+    )
 
     @field_validator("action", mode="before")
     @classmethod

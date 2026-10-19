@@ -1,0 +1,322 @@
+"""Agent Orchestration Pipeline for conversational product recommendations.
+
+Coordinates:
+    - Module 5: Requirements extraction from natural language.
+    - Module 6: Multi-turn requirements merging and contradiction detection.
+    - Module 7: Clarification policy and slot-filling decisions.
+    - Module 8: Product candidate retrieval, filtering, and scoring.
+    - Module 9: Response generation, grounded explanation, and validation.
+
+Principle:
+    The LLM understands and explains; deterministic Python code decides and enforces.
+"""
+
+from __future__ import annotations
+
+import re
+from typing import Any
+from pydantic import BaseModel, ConfigDict, Field
+
+from app.agent.extract import extract
+from app.agent.merge import merge
+from app.agent.normalize import parse_inr_budget_expression
+from app.agent.policy import decide_next_action
+from app.agent.ranking import search_and_rank
+from app.agent.respond import generate_recommendation_response
+from app.agent.slots import SlotStatus, parse_natural_language_slot_updates
+from app.core.errors import InvalidMessageError
+from app.core.logging import get_logger
+from app.db.repositories import ProductRepository
+from app.llm.client import LLMClient
+from app.models.conversation import ConversationMessage, ConversationState
+from app.models.product import Category
+from app.models.ranking import CandidateSearchResult
+from app.models.requirements import (
+    CATEGORY_ALIASES,
+    Contradiction,
+    Message,
+    PolicyAction,
+    PolicyDecision,
+    Requirements,
+    RequirementsDelta,
+)
+from app.models.response import ProductRecommendation, RecommendationResponse
+
+logger = get_logger("app.agent.pipeline")
+
+# Known unsupported categories to detect and cleanly redirect or reject
+UNSUPPORTED_CATEGORIES = {
+    "tv",
+    "television",
+    "smartwatch",
+    "watch",
+    "refrigerator",
+    "fridge",
+    "camera",
+    "dslr",
+    "drone",
+    "printer",
+    "speaker",
+    "soundbar",
+    "console",
+    "playstation",
+    "xbox",
+    "ac",
+    "air conditioner",
+}
+
+
+def _extract_unsupported_category_mention(text: str) -> str | None:
+    """Check if user text explicitly mentions an unsupported electronics category."""
+    text_lower = text.lower()
+    for cat in UNSUPPORTED_CATEGORIES:
+        # Match whole words only
+        if re.search(rf"\b{re.escape(cat)}\b", text_lower):
+            return cat
+    return None
+
+
+def _build_fallback_delta(text: str) -> RequirementsDelta:
+    """Deterministic rule-based fallback extractor when LLM extraction fails."""
+    text_lower = text.lower()
+    cat: Category | None = None
+    for alias, c in CATEGORY_ALIASES.items():
+        if re.search(rf"\b{re.escape(alias)}\b", text_lower):
+            cat = c
+            break
+
+    # Attempt to extract budget mention (e.g., under 50k, 50000)
+    budget: int | None = None
+    budget_match = re.search(r"(?:under|below|budget|max|up to|rs\.?|inr|₹)\s*(\d[\d,]*\s*(?:k|lakh|thousand)?)", text_lower)
+    if budget_match:
+        budget = parse_inr_budget_expression(budget_match.group(1))
+
+    return RequirementsDelta(category=cat, budget_max_inr=budget)
+
+
+class PipelineResult(BaseModel):
+    """Structured result returned by the agent orchestration pipeline."""
+
+    model_config = ConfigDict(extra="forbid", validate_assignment=True)
+
+    updated_conversation: ConversationState = Field(description="Updated conversation state")
+    decision: PolicyDecision = Field(description="Policy decision executed on this turn")
+    assistant_message: str = Field(description="User-facing response message from assistant")
+    recommendations: list[ProductRecommendation] = Field(
+        default_factory=list, description="Ranked product recommendations if action is RECOMMEND"
+    )
+    recommendation_response: RecommendationResponse | None = Field(
+        default=None, description="Module 9 recommendation envelope if recommendations were generated"
+    )
+    unresolved_contradictions: list[Contradiction] = Field(
+        default_factory=list, description="Active contradictions if any"
+    )
+    is_fallback: bool = Field(
+        default=False, description="Whether fallback logic was engaged during extraction or recommendation"
+    )
+
+
+async def run_pipeline(
+    user_message: str,
+    conversation: ConversationState,
+    llm_client: LLMClient,
+    product_repo: ProductRepository,
+) -> PipelineResult:
+    """Execute the end-to-end multi-module conversational recommendation pipeline.
+
+    Args:
+        user_message: The raw input message text from the user.
+        conversation: Current persistent ConversationState.
+        llm_client: Injected LLM client for extraction and explanation generation.
+        product_repo: Injected ProductRepository for candidate retrieval.
+
+    Returns:
+        PipelineResult containing updated conversation state, decisions, and recommendations.
+
+    Raises:
+        InvalidMessageError: If message is empty or exceeds 1000 characters.
+    """
+    if not isinstance(user_message, str) or not user_message.strip():
+        raise InvalidMessageError("User message cannot be empty or whitespace only.")
+
+    cleaned_message = user_message.strip()
+    if len(cleaned_message) > 1000:
+        raise InvalidMessageError(
+            f"User message exceeds maximum permitted length of 1000 characters (received {len(cleaned_message)})."
+        )
+
+    is_fallback: bool = False
+
+    # 1. Convert recent conversation history (max 6 messages) for context
+    recent_messages = [
+        Message(role=m.role, content=m.content)
+        for m in conversation.messages[-6:]
+    ]
+
+    # 2. Extract rule-based natural language slot updates (you decide, skip, specs)
+    nl_status_updates, nl_delta = parse_natural_language_slot_updates(
+        text=cleaned_message,
+        last_asked_slot=conversation.last_asked_slot,
+        current_req=conversation.requirements,
+    )
+
+    # 3. Extract requirements delta using Module 5 LLM extractor
+    try:
+        llm_delta = await extract(
+            message=cleaned_message,
+            current=conversation.requirements,
+            recent=recent_messages,
+            llm=llm_client,
+        )
+    except Exception as err:
+        logger.warning(
+            "LLM requirements extraction encountered error: %s. Using deterministic fallback extraction.",
+            err,
+        )
+        is_fallback = True
+        llm_delta = _build_fallback_delta(cleaned_message)
+
+    # Merge nl_delta and llm_delta
+    # Prioritize concrete specs from either
+    combined_delta_dict = llm_delta.model_dump()
+    if nl_delta.hard is not None:
+        if combined_delta_dict.get("hard") is None:
+            combined_delta_dict["hard"] = nl_delta.hard.model_dump()
+        else:
+            for k, v in nl_delta.hard.model_dump().items():
+                if v is not None:
+                    combined_delta_dict["hard"][k] = v
+
+    combined_delta = RequirementsDelta(**combined_delta_dict)
+
+    # 4. Merge combined delta into accumulated requirements using Module 6
+    merged_requirements, contradictions = merge(conversation.requirements, combined_delta)
+
+    # If category changed, reset category-specific slot statuses
+    if (
+        conversation.requirements.category is not None
+        and merged_requirements.category is not None
+        and merged_requirements.category != conversation.requirements.category
+    ):
+        # Keep universal slots (category, budget, use_cases), reset category-specific slots
+        universal = {"category", "budget", "use_cases"}
+        conversation.slot_status = {
+            k: v for k, v in conversation.slot_status.items() if k in universal
+        }
+
+    # Update slot_status with new updates
+    conversation.slot_status.update(nl_status_updates)
+
+    # Automatically mark slots as ANSWERED if values are now concrete in requirements
+    if merged_requirements.category is not None:
+        conversation.slot_status["category"] = SlotStatus.ANSWERED.value
+    if merged_requirements.budget_max_inr is not None:
+        conversation.slot_status["budget"] = SlotStatus.ANSWERED.value
+    if len(merged_requirements.use_cases) > 0:
+        conversation.slot_status["use_cases"] = SlotStatus.ANSWERED.value
+    if merged_requirements.hard.min_ram_gb is not None:
+        conversation.slot_status["ram"] = SlotStatus.ANSWERED.value
+    if merged_requirements.hard.min_storage_gb is not None:
+        conversation.slot_status["storage"] = SlotStatus.ANSWERED.value
+        conversation.slot_status["phone_storage"] = SlotStatus.ANSWERED.value
+        conversation.slot_status["tablet_storage"] = SlotStatus.ANSWERED.value
+    if merged_requirements.hard.requires_gpu is not None:
+        conversation.slot_status["gpu"] = SlotStatus.ANSWERED.value
+    if merged_requirements.ml_mode is not None:
+        conversation.slot_status["ml_mode"] = SlotStatus.ANSWERED.value
+
+    # 5. Check for explicitly mentioned unsupported categories
+    unsupported_cat: str | None = None
+    if merged_requirements.category is None and combined_delta.category is None:
+        unsupported_cat = _extract_unsupported_category_mention(cleaned_message)
+
+    # 6. Evaluate policy action using Module 7 with mandatory slot enforcement
+    turn_count = conversation.turn_count + 1
+    decision = decide_next_action(
+        requirements=merged_requirements,
+        contradictions=contradictions,
+        asked_slots=conversation.asked_slots,
+        turn_count=turn_count,
+        is_off_topic=combined_delta.is_off_topic,
+        unsupported_category=unsupported_cat,
+        slot_status=conversation.slot_status,
+        enforce_mandatory_slots=True,
+    )
+
+    recommendations: list[ProductRecommendation] = []
+    rec_response: RecommendationResponse | None = None
+    assistant_message: str
+
+    # 7. Execute policy action (Recommendation Gate enforces no premature recommendations)
+    if decision.action == PolicyAction.RECOMMEND and decision.can_recommend:
+        # Step 7a: Retrieve and rank candidates via Module 8
+        search_result = await search_and_rank(
+            requirements=merged_requirements,
+            repository=product_repo,
+            top_n=5,
+        )
+
+        # Step 7b: Generate grounded response via Module 9
+        rec_response = await generate_recommendation_response(
+            requirements=merged_requirements,
+            search_result=search_result,
+            llm_client=llm_client,
+        )
+
+        assistant_message = rec_response.message
+        recommendations = rec_response.recommendations
+        is_fallback = is_fallback or rec_response.is_fallback
+        conversation.last_asked_slot = None
+
+    elif decision.action == PolicyAction.ASK:
+        assistant_message = decision.question or "Could you provide more details about your requirements?"
+        conversation.last_asked_slot = decision.slot
+        if decision.slot and decision.slot not in conversation.asked_slots:
+            conversation.asked_slots.append(decision.slot)
+
+    elif decision.action == PolicyAction.CLARIFY_CONFLICT:
+        assistant_message = decision.question or "Please clarify your contradictory requirements."
+        conversation.last_asked_slot = "conflict"
+
+    elif decision.action == PolicyAction.REDIRECT:
+        assistant_message = decision.question or "I am an electronics recommendation assistant. How can I help you today?"
+        conversation.last_asked_slot = None
+
+    elif decision.action == PolicyAction.NO_MATCH:
+        assistant_message = decision.question or "No matching products could be found matching your requirements."
+        conversation.last_asked_slot = None
+
+    else:
+        assistant_message = "How can I assist you with your electronics search today?"
+        conversation.last_asked_slot = None
+
+    # 8. Update conversation state and append chronological messages
+    conversation.requirements = merged_requirements
+    conversation.turn_count = turn_count
+
+    user_msg_record = ConversationMessage(
+        role="user",
+        content=cleaned_message,
+    )
+    assistant_msg_record = ConversationMessage(
+        role="assistant",
+        content=assistant_message,
+        action=decision.action,
+        recommendations=recommendations,
+        clarification_question=decision.question if decision.is_ask or decision.is_clarify_conflict else None,
+        contradictions=list(contradictions),
+        is_fallback=is_fallback,
+    )
+
+    conversation.messages.append(user_msg_record)
+    conversation.messages.append(assistant_msg_record)
+
+    return PipelineResult(
+        updated_conversation=conversation,
+        decision=decision,
+        assistant_message=assistant_message,
+        recommendations=recommendations,
+        recommendation_response=rec_response,
+        unresolved_contradictions=list(contradictions),
+        is_fallback=is_fallback,
+    )

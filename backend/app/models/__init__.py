@@ -28,6 +28,22 @@ from app.models.requirements import (
     RequirementsDelta,
     VALID_REMOVABLE_FIELDS,
 )
+from app.models.response import (
+    LLMProductExplanation,
+    LLMRecommendationPayload,
+    ProductRecommendation,
+    RecommendationResponse,
+)
+
+from app.models.conversation import (
+    ConversationHistoryResponse,
+    ConversationMessage,
+    ConversationResponse,
+    ConversationState,
+    ConversationTurnResponse,
+    CreateConversationRequest,
+    SendMessageRequest,
+)
 
 __all__ = [
     "CandidateEvaluation",
@@ -37,21 +53,32 @@ __all__ = [
     "ConstraintCheck",
     "ConstraintStatus",
     "Contradiction",
+    "ConversationHistoryResponse",
+    "ConversationMessage",
+    "ConversationResponse",
+    "ConversationState",
+    "ConversationTurnResponse",
+    "CreateConversationRequest",
     "DependencyStatus",
     "ErrorDetail",
     "ErrorResponse",
     "HardConstraints",
     "HealthResponse",
+    "LLMProductExplanation",
+    "LLMRecommendationPayload",
     "Message",
     "OverallHealthStatus",
     "PolicyAction",
     "PolicyDecision",
     "Product",
     "ProductListResponse",
+    "ProductRecommendation",
     "RECOGNIZED_PREFERENCES",
     "RankedCandidate",
+    "RecommendationResponse",
     "Requirements",
     "RequirementsDelta",
     "ScoreBreakdown",
+    "SendMessageRequest",
     "VALID_REMOVABLE_FIELDS",
 ]

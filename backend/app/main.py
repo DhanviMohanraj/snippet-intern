@@ -113,11 +113,12 @@ def create_app(
         return {"status": "alive"}
 
     # Register /api/v1 sub-routers
-    from app.api import health_router, products_router
+    from app.api import conversations_router, health_router, products_router
 
     api_v1_router = APIRouter(prefix="/api/v1")
     api_v1_router.include_router(products_router)
     api_v1_router.include_router(health_router)
+    api_v1_router.include_router(conversations_router)
     app.include_router(api_v1_router)
 
     return app

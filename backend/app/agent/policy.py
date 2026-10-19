@@ -99,6 +99,19 @@ SLOT_ALIASES: dict[str, str] = {
     "local_ml": "ml_mode",
     "conflict": "conflict",
     "contradiction": "conflict",
+    "ram": "ram",
+    "min_ram_gb": "ram",
+    "memory": "ram",
+    "storage": "storage",
+    "min_storage_gb": "storage",
+    "ssd": "storage",
+    "gpu": "gpu",
+    "graphics": "gpu",
+    "requires_gpu": "gpu",
+    "form_factor": "form_factor",
+    "phone_priority": "phone_priority",
+    "stylus_keyboard": "stylus_keyboard",
+    "display_specs": "display_specs",
 }
 
 # Keywords indicating machine learning / AI use cases
@@ -164,6 +177,8 @@ def decide_next_action(
     max_turns: int = MAX_CLARIFICATION_TURNS,
     is_off_topic: bool = False,
     unsupported_category: str | None = None,
+    slot_status: dict[str, str] | None = None,
+    enforce_mandatory_slots: bool = False,
 ) -> PolicyDecision:
     """Deterministically decide the next conversational action.
 
@@ -173,10 +188,8 @@ def decide_next_action(
         3. Turn limit enforcement with safe stopping (RECOMMEND or NO_MATCH).
         4. Missing product category (ASK category).
         5. Unresolved logical contradictions (CLARIFY_CONFLICT).
-        6. Missing essential budget (ASK budget, if not already asked).
-        7. Missing primary use case (ASK category-specific use case, if not already asked).
-        8. Critical technical constraints (ASK ml_mode for laptop ML, if not already asked).
-        9. Sufficient requirements established (RECOMMEND).
+        6. Missing mandatory category-specific requirements (ASK targeted slot).
+        7. Sufficient requirements established (RECOMMEND).
 
     Args:
         requirements: Accumulated requirements state from previous turns.
@@ -186,10 +199,17 @@ def decide_next_action(
         max_turns: Maximum allowed clarification turns before stopping.
         is_off_topic: Flag indicating the latest message was off-topic.
         unsupported_category: Name of an explicitly requested unsupported category, if any.
+        slot_status: Optional mapping of slot names to SlotStatus values.
+        enforce_mandatory_slots: When True, enforces all category-specific mandatory slots.
 
     Returns:
-        PolicyDecision containing action, targeted question, slot, and reason code.
+        PolicyDecision containing action, targeted question, slot, reason, and can_recommend flag.
     """
+    from app.agent.slots import (
+        can_proceed_to_recommendation,
+        get_next_slot_to_clarify,
+    )
+
     # 1. Off-topic check
     if is_off_topic:
         return PolicyDecision(
@@ -197,6 +217,8 @@ def decide_next_action(
             question=OFF_TOPIC_REDIRECT_MESSAGE,
             slot=None,
             reason="off_topic",
+            can_recommend=False,
+            remaining_slots=[],
         )
 
     # 2. Unsupported category check
@@ -210,6 +232,8 @@ def decide_next_action(
             slot="category",
             reason="unsupported_category",
             metadata={"unsupported_category": unsupported_category},
+            can_recommend=False,
+            remaining_slots=[],
         )
 
     # Combine asked_slots from requirements and explicit parameter
@@ -226,21 +250,32 @@ def decide_next_action(
     if contradictions is None:
         contradictions = detect_contradictions(requirements)
 
-    # 3. Turn limit enforcement
-    # If the clarification limit has been reached, do not ask endless questions.
-    if turn_count >= max_turns:
-        # If category is missing, we cannot recommend anything safely
-        if requirements.category is None:
+    # 3. Missing product category (highest conversational priority)
+    if requirements.category is None:
+        if not enforce_mandatory_slots and turn_count >= max_turns:
             return PolicyDecision(
                 action=PolicyAction.NO_MATCH,
                 question="Unable to provide recommendations because the product category could not be determined within the clarification limit.",
                 slot="category",
                 reason="turn_limit_missing_category",
                 metadata={"turn_count": turn_count, "max_turns": max_turns},
+                can_recommend=False,
+                remaining_slots=["category"],
             )
+        return PolicyDecision(
+            action=PolicyAction.ASK,
+            question=CATEGORY_QUESTION,
+            slot="category",
+            reason="missing_category",
+            can_recommend=False,
+            remaining_slots=["category"],
+        )
 
-        # If unresolved contradictions remain, we cannot recommend safely
-        if len(contradictions) > 0:
+    # 4. Unresolved contradictions
+    if len(contradictions) > 0:
+        first_conflict = contradictions[0]
+        clarification_q = format_contradiction_question(first_conflict, requirements)
+        if not enforce_mandatory_slots and turn_count >= max_turns:
             return PolicyDecision(
                 action=PolicyAction.NO_MATCH,
                 question="Unable to proceed with recommendations due to unresolved requirement contradictions after reaching the clarification limit.",
@@ -248,30 +283,9 @@ def decide_next_action(
                 reason="turn_limit_unresolved_contradictions",
                 contradictions=list(contradictions),
                 metadata={"turn_count": turn_count, "max_turns": max_turns},
+                can_recommend=False,
+                remaining_slots=[],
             )
-
-        # Baseline category is known and no contradictions exist: proceed to recommendations!
-        return PolicyDecision(
-            action=PolicyAction.RECOMMEND,
-            question=None,
-            slot=None,
-            reason="turn_limit_reached",
-            metadata={"turn_count": turn_count, "max_turns": max_turns},
-        )
-
-    # 4. Missing product category (highest conversational priority)
-    if requirements.category is None:
-        return PolicyDecision(
-            action=PolicyAction.ASK,
-            question=CATEGORY_QUESTION,
-            slot="category",
-            reason="missing_category",
-        )
-
-    # 5. Unresolved contradictions
-    if len(contradictions) > 0:
-        first_conflict = contradictions[0]
-        clarification_q = format_contradiction_question(first_conflict, requirements)
         return PolicyDecision(
             action=PolicyAction.CLARIFY_CONFLICT,
             question=clarification_q,
@@ -282,18 +296,78 @@ def decide_next_action(
                 "contradiction_code": first_conflict.code,
                 "contradiction_fields": first_conflict.fields,
             },
+            can_recommend=False,
+            remaining_slots=[],
         )
 
-    # 6. Missing essential budget
+    # 5. Mandatory Slot-Filling Engine
+    if enforce_mandatory_slots:
+        effective_status = dict(slot_status or {})
+        can_rec, blocking_reason, remaining_mandatory = can_proceed_to_recommendation(
+            requirements, effective_status, contradictions
+        )
+
+        if can_rec:
+            return PolicyDecision(
+                action=PolicyAction.RECOMMEND,
+                question=None,
+                slot=None,
+                reason="sufficient_requirements",
+                can_recommend=True,
+                remaining_slots=[],
+            )
+
+        # Retrieve next best mandatory slot to clarify
+        next_slot = get_next_slot_to_clarify(requirements, effective_status, list(effective_asked))
+        if next_slot is not None:
+            q_text = next_slot.question
+            if next_slot.name == "use_cases" and requirements.category in CATEGORY_USE_CASE_QUESTIONS:
+                q_text = CATEGORY_USE_CASE_QUESTIONS[requirements.category]
+
+            return PolicyDecision(
+                action=PolicyAction.ASK,
+                question=q_text,
+                slot=next_slot.name,
+                reason=f"missing_{next_slot.name}",
+                can_recommend=False,
+                remaining_slots=remaining_mandatory,
+            )
+
+        # Fallback question if mandatory slot exists but was previously queried
+        return PolicyDecision(
+            action=PolicyAction.ASK,
+            question="Could you please provide more details on your requirements so I can find the best match for you?",
+            slot=remaining_mandatory[0] if remaining_mandatory else None,
+            reason="missing_mandatory_slots",
+            can_recommend=False,
+            remaining_slots=remaining_mandatory,
+        )
+
+    # 6. Legacy Module 7 Fallback Path (for backward-compatible tests)
+    # Turn limit enforcement
+    if turn_count >= max_turns:
+        return PolicyDecision(
+            action=PolicyAction.RECOMMEND,
+            question=None,
+            slot=None,
+            reason="turn_limit_reached",
+            metadata={"turn_count": turn_count, "max_turns": max_turns},
+            can_recommend=True,
+            remaining_slots=[],
+        )
+
+    # Missing essential budget
     if requirements.budget_max_inr is None and "budget" not in effective_asked:
         return PolicyDecision(
             action=PolicyAction.ASK,
             question=BUDGET_QUESTION,
             slot="budget",
             reason="missing_budget",
+            can_recommend=False,
+            remaining_slots=["budget"],
         )
 
-    # 7. Missing primary use case
+    # Missing primary use case
     if len(requirements.use_cases) == 0 and "use_cases" not in effective_asked:
         use_case_question = CATEGORY_USE_CASE_QUESTIONS.get(
             requirements.category,
@@ -304,10 +378,11 @@ def decide_next_action(
             question=use_case_question,
             slot="use_cases",
             reason="missing_use_case",
+            can_recommend=False,
+            remaining_slots=["use_cases"],
         )
 
-    # 8. Critical technical constraints (category-aware clarification)
-    # If laptop with ML use cases, clarify local vs cloud ML if not yet established or asked
+    # Critical technical constraints (category-aware clarification)
     if requirements.category == Category.LAPTOP:
         has_ml_use_case = any(
             any(kw in uc.lower() for kw in ML_USE_CASE_KEYWORDS)
@@ -324,13 +399,16 @@ def decide_next_action(
                 question=ML_MODE_QUESTION,
                 slot="ml_mode",
                 reason="clarify_ml_mode",
+                can_recommend=False,
+                remaining_slots=["ml_mode"],
             )
 
-    # 9. Sufficient requirements established
-    # Optional preferences (brands, weights, display, battery) never block recommendations.
+    # Sufficient requirements established
     return PolicyDecision(
         action=PolicyAction.RECOMMEND,
         question=None,
         slot=None,
         reason="sufficient_requirements",
+        can_recommend=True,
+        remaining_slots=[],
     )
