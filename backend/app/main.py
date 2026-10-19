@@ -112,9 +112,12 @@ def create_app(
         """Liveness check indicating the process is alive and receiving traffic."""
         return {"status": "alive"}
 
-    # Prepare placeholder for future /api/v1 router
+    # Register /api/v1 sub-routers
+    from app.api import health_router, products_router
+
     api_v1_router = APIRouter(prefix="/api/v1")
-    # Sub-routers for later modules will be registered here (Module 2+: catalogue, agent, etc.)
+    api_v1_router.include_router(products_router)
+    api_v1_router.include_router(health_router)
     app.include_router(api_v1_router)
 
     return app
