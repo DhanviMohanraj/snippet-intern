@@ -1235,8 +1235,94 @@ If startup or seeding fails with `DatabaseConnectionError`:
 - [x] **Module 7:** Clarification Policy & Slot-Filling Decision Engine
 - [x] **Module 8:** Candidate Filtering & Deterministic Multi-Factor Scoring
 - [x] **Module 9:** Recommendation Explanation Synthesis Pipeline
-- [x] **Module 10:** Chat Conversation API Endpoints & State Management
-- [ ] **Module 11:** React + Vite Conversational Frontend
+- [x] **Module 11:** React + Vite Conversational Frontend UI & Integration
+
+---
+
+## 22. Conversational Frontend UI (Module 11)
+
+Module 11 provides a modern, responsive, high-aesthetic web interface built with **React** and **Vite** located in the `frontend/` directory.
+
+### Frontend Architecture
+
+- **Framework:** React 19 + Vite 8
+- **Icons:** Lucide React
+- **Styling:** Custom Vanilla CSS Design System with dark obsidian aesthetics, luminous glassmorphism accents, and responsive layout. No bloated utility frameworks.
+- **Testing:** Vitest + React Testing Library + `@testing-library/jest-dom` + `jsdom`.
+- **API Integration:** Universal fetch client communicating with backend FastAPI endpoints under `/api/v1` with automatic `X-User-ID` header persistence.
+
+### Key UI Features & Components
+
+1. **Application Header (`Header.jsx`):**
+   - Live backend health monitoring querying `GET /api/v1/health` with real-time status indicator (System Online vs Degraded).
+   - Mode switcher toggling between **AI Consultation** and **Product Catalogue Browser**.
+   - Consultation controls ("New Consultation" and sidebar toggles).
+
+2. **Consultation Sessions Sidebar (`Sidebar.jsx`):**
+   - Multi-session history tracking with turn count badges and timestamps.
+   - Session switching and deletion with confirmation.
+   - User identity indicator displaying the active `X-User-ID`.
+
+3. **Conversational Chat Area (`ChatArea.jsx` & `MessageBubble.jsx`):**
+   - Welcoming empty state hero with 4 curated starter prompt cards across categories.
+   - Message stream with distinct user and AI bubbles.
+   - **Clarification Callout:** Highlighted guidance container rendered whenever `requires_clarification` is true or action is `ASK`.
+   - **Contradiction Alert:** Clear error explanation whenever specification conflicts occur.
+   - **Product Recommendation Cards:** Rendered directly beneath recommendations when the gate unlocks (`RECOMMEND`), displaying verified specifications, match scores, advantages, trade-offs, and "Ask about this model" buttons.
+   - Animated typing indicator during analysis.
+   - Auto-scrolling to the latest turn.
+
+4. **Requirements Summary Panel (`RequirementsPanel.jsx`):**
+   - Live specification dashboard displaying detected category, budget boundaries, and use cases.
+   - Decision slot engine tracking answered vs pending slots (`ram`, `storage`, `gpu`, etc.).
+   - Consultation progress readiness badge ("Gathering Specs" vs "Ready to Recommend").
+   - Clickable interactive chips for missing slots.
+
+5. **Message Composer (`MessageComposer.jsx`):**
+   - Auto-resizing textarea with keyboard support (`Enter` to send, `Shift + Enter` for new lines).
+   - Loading spinners on send button.
+   - Draft preservation and inline retry on network errors.
+
+6. **Product Catalogue Browser (`ProductBrowser.jsx`):**
+   - Live searchable repository view querying `/api/v1/products` and `/api/v1/products/categories`.
+   - Real-time category filtering chips and max price filters.
+   - "Consult Assistant" action buttons transitioning directly to chat consultation.
+
+### Running the Frontend
+
+Navigate to `frontend/` and start the Vite dev server:
+
+```powershell
+cd frontend
+npm install
+npm run dev
+```
+
+The frontend will run at [http://localhost:5173](http://localhost:5173) (or `http://127.0.0.1:5173`).
+
+### Running Frontend Automated Tests
+
+Run the Vitest test suite in `frontend/`:
+
+```powershell
+cd frontend
+npm test
+```
+
+All 16 unit and integration tests run offline without network access:
+- API client, request formatting, error handling, and parameter serialization.
+- Header, Sidebar, RecommendationCard, RequirementsPanel, and MessageComposer component tests.
+- Full end-to-end multi-turn consultation integration flow.
+
+### Building for Production
+
+```powershell
+cd frontend
+npm run build
+```
+
+Production assets are emitted to `frontend/dist/`.
+
 
 
 
