@@ -289,12 +289,28 @@ RE_DECLINE_OR_SKIP = re.compile(
 )
 
 RE_RAM = re.compile(r"\b(4|8|16|24|32|64)\s*(?:gb|gigs?)\s*(?:ram)?\b", re.IGNORECASE)
-RE_STORAGE = re.compile(r"\b(128|256|512|1024|1|2)\s*(?:gb|tb)\s*(?:ssd|storage|rom|hdd|hard\s*drive)?\b", re.IGNORECASE)
+RE_STORAGE = re.compile(
+    r"(?:\b(?:storage|ssd|rom|disk|capacity)\s*(?:to|of|at|is)?\s*(\d+)\s*(?:gb|tb)?\b|"
+    r"\b(64|128|256|512|1024|1|2)\s*(?:gb|tb)\s*(?:ssd|storage|rom|hdd|hard\s*drive)?(?!\s*ram)\b)",
+    re.IGNORECASE,
+)
 RE_GPU_NEED = re.compile(r"\b(rtx\s*\d{4}|dedicated\s*gpu|nvidia|graphics\s*card|gtx|radeon)\b", re.IGNORECASE)
 RE_GPU_NO_NEED = re.compile(r"\b(integrated|no\s*gpu|don'?t\s*need\s*gpu|not\s*needed|integrated\s*graphics)\b", re.IGNORECASE)
-RE_OVER_EAR = re.compile(r"\b(over-?ear|on-?ear)\b", re.IGNORECASE)
-RE_IN_EAR = re.compile(r"\b(in-?ear|tws|earbuds?|earphones?)\b", re.IGNORECASE)
-RE_STYLUS = re.compile(r"\b(stylus|pen|pencil|drawing|notes?|note-?taking)\b", re.IGNORECASE)
+RE_OVER_EAR = re.compile(r"\b(over[-\s]?ear|on[-\s]?ear|overhead)\b", re.IGNORECASE)
+RE_IN_EAR = re.compile(r"\b(in[-\s]?ear|tws|earbuds?|earphones?|in[-\s]?canal)\b", re.IGNORECASE)
+RE_STYLUS = re.compile(r"\b(stylus|pen|pencil|apple\s*pencil|s-?pen|drawing|notes?|note-?taking|keyboard|typing)\b", re.IGNORECASE)
+RE_NO_STYLUS = re.compile(r"\b(no\s+stylus|don'?t\s+need\s+stylus|no\s+pen|without\s+stylus|neither|not\s+needed)\b", re.IGNORECASE)
+RE_WIRELESS = re.compile(r"\b(wireless|bluetooth|true\s+wireless)\b", re.IGNORECASE)
+RE_ANC = re.compile(r"\b(anc|active\s+noise\s+cancellation|noise\s+cancelling|noise\s+cancellation)\b", re.IGNORECASE)
+RE_MIC = re.compile(r"\b(mic|microphone|voice\s*calls?|calling|online\s*classes?|zoom|teams)\b", re.IGNORECASE)
+RE_COMFORT = re.compile(r"\b(comfort|comfortable|cushions?|ear\s*cushions?|hours\s*(?:daily|a\s*day))\b", re.IGNORECASE)
+RE_BATTERY = re.compile(r"\b(battery|battery\s*life|endurance|playtime)\b", re.IGNORECASE)
+RE_CAMERA = re.compile(r"\b(camera|photo|photography|night\s*(?:mode|shots?|photography)?|portrait|zoom)\b", re.IGNORECASE)
+RE_PERF = re.compile(r"\b(gaming|speed|fast|performance|heavy\s*multitasking)\b", re.IGNORECASE)
+RE_COMPACT = re.compile(r"\b(compact|small\s*size|single[-\s]hand|lightweight)\b", re.IGNORECASE)
+RE_REFRESH_HZ = re.compile(r"\b(60|75|90|120|144|165|240|360)\s*hz\b", re.IGNORECASE)
+RE_DISPLAY_RES = re.compile(r"\b(1080p|1440p|4k|2k|qhd|uhd|fhd|retina|oled|ips)\b", re.IGNORECASE)
+RE_DISPLAY_SIZE = re.compile(r"\b(24|27|32|34|11|12|13|14|15|16)\s*(?:-?\s*inch|\")\b", re.IGNORECASE)
 
 
 def parse_natural_language_slot_updates(
@@ -313,6 +329,7 @@ def parse_natural_language_slot_updates(
     status_updates: dict[str, str] = {}
     delta_kwargs: dict[str, Any] = {}
     hard_kwargs: dict[str, Any] = {}
+    pref_kwargs: dict[str, float] = {}
 
     # 1. Check for delegation ("you decide")
     if RE_DELEGATION.search(text_clean):
@@ -338,14 +355,16 @@ def parse_natural_language_slot_updates(
     # Storage
     storage_match = RE_STORAGE.search(text_clean)
     if storage_match:
-        val = int(storage_match.group(1))
-        # 1TB or 2TB convert to GB
-        if "tb" in storage_match.group(0).lower():
-            val = val * 1024
-        hard_kwargs["min_storage_gb"] = val
-        status_updates["storage"] = SlotStatus.ANSWERED.value
-        status_updates["phone_storage"] = SlotStatus.ANSWERED.value
-        status_updates["tablet_storage"] = SlotStatus.ANSWERED.value
+        val_str = storage_match.group(1) or storage_match.group(2)
+        if val_str:
+            val = int(val_str)
+            # 1TB or 2TB convert to GB
+            if "tb" in storage_match.group(0).lower():
+                val = val * 1024
+            hard_kwargs["min_storage_gb"] = val
+            status_updates["storage"] = SlotStatus.ANSWERED.value
+            status_updates["phone_storage"] = SlotStatus.ANSWERED.value
+            status_updates["tablet_storage"] = SlotStatus.ANSWERED.value
 
     # GPU
     if RE_GPU_NEED.search(text_clean):
@@ -357,16 +376,76 @@ def parse_natural_language_slot_updates(
 
     # Headphones Form Factor
     if RE_OVER_EAR.search(text_clean) and not RE_IN_EAR.search(text_clean):
+        hard_kwargs["form_factor"] = "over-ear"
         status_updates["form_factor"] = SlotStatus.ANSWERED.value
-    elif RE_IN_EAR.search(text_clean):
+    elif RE_IN_EAR.search(text_clean) and not RE_OVER_EAR.search(text_clean):
+        hard_kwargs["form_factor"] = "in-ear"
         status_updates["form_factor"] = SlotStatus.ANSWERED.value
 
+    # Headphones & Audio features
+    if RE_WIRELESS.search(text_clean):
+        hard_kwargs["requires_wireless"] = True
+    if RE_ANC.search(text_clean):
+        pref_kwargs["noise_cancellation"] = 0.85
+        status_updates["anc"] = SlotStatus.ANSWERED.value
+    if RE_MIC.search(text_clean):
+        pref_kwargs["microphone_quality"] = 0.85
+    if RE_COMFORT.search(text_clean):
+        pref_kwargs["comfort"] = 0.85
+    if RE_BATTERY.search(text_clean):
+        pref_kwargs["battery_life"] = 0.85
+        if last_asked_slot == "phone_priority":
+            status_updates["phone_priority"] = SlotStatus.ANSWERED.value
+
+    # Phone Priorities
+    if RE_CAMERA.search(text_clean):
+        pref_kwargs["camera_quality"] = 0.85
+        status_updates["phone_priority"] = SlotStatus.ANSWERED.value
+    if RE_PERF.search(text_clean):
+        pref_kwargs["performance"] = 0.85
+        if last_asked_slot == "phone_priority":
+            status_updates["phone_priority"] = SlotStatus.ANSWERED.value
+    if RE_COMPACT.search(text_clean):
+        pref_kwargs["portability"] = 0.85
+        if last_asked_slot == "phone_priority":
+            status_updates["phone_priority"] = SlotStatus.ANSWERED.value
+
+    # Monitor & Display features
+    hz_match = RE_REFRESH_HZ.search(text_clean)
+    if hz_match:
+        hz_val = int(hz_match.group(1))
+        hard_kwargs["min_refresh_hz"] = hz_val
+        status_updates["refresh_rate"] = SlotStatus.ANSWERED.value
+    if RE_DISPLAY_RES.search(text_clean) or RE_DISPLAY_SIZE.search(text_clean):
+        pref_kwargs["display_quality"] = 0.85
+        status_updates["display_specs"] = SlotStatus.ANSWERED.value
+
+    # Budget extraction helper
+    if (
+        last_asked_slot == "budget"
+        or re.search(
+            r"(?:under|below|budget(?:\s+(?:is|to|of|at))?|max|up to|rs\.?|inr|₹|increase\s+(?:my\s+)?budget\s+to|raise\s+(?:my\s+)?budget\s+to)\s*\d",
+            text_clean,
+            re.I,
+        )
+    ):
+        parsed_b = parse_inr_budget_expression(text_clean)
+        if parsed_b is not None:
+            delta_kwargs["budget_max_inr"] = parsed_b
+            status_updates["budget"] = SlotStatus.ANSWERED.value
+
     # Stylus / Tablet
-    if RE_STYLUS.search(text_clean):
+    if RE_NO_STYLUS.search(text_clean):
+        hard_kwargs["requires_stylus"] = False
+        status_updates["stylus_keyboard"] = SlotStatus.ANSWERED.value
+    elif RE_STYLUS.search(text_clean):
+        hard_kwargs["requires_stylus"] = True
         status_updates["stylus_keyboard"] = SlotStatus.ANSWERED.value
 
     if hard_kwargs:
         delta_kwargs["hard"] = HardConstraints(**hard_kwargs)
+    if pref_kwargs:
+        delta_kwargs["preferences"] = pref_kwargs
 
     delta = RequirementsDelta(**delta_kwargs) if delta_kwargs else RequirementsDelta()
     return status_updates, delta
@@ -425,16 +504,19 @@ def is_slot_answered(slot: RequirementSlot, req: Requirements, slot_status: dict
         )
 
     if slot.name == "form_factor":
-        return "form_factor" in slot_status
+        return req.hard.form_factor is not None or "form_factor" in slot_status
 
     if slot.name == "anc":
         return "noise_cancellation" in req.preferences or "anc" in slot_status
 
     if slot.name == "stylus_keyboard":
-        return "stylus_keyboard" in slot_status
+        return "stylus_keyboard" in slot_status or req.hard.requires_stylus is not None
 
     if slot.name == "display_specs":
-        return "display_quality" in req.preferences or "display_specs" in slot_status
+        return "display_quality" in req.preferences or "display_specs" in slot_status or req.hard.min_refresh_hz is not None
+
+    if slot.name == "refresh_rate":
+        return req.hard.min_refresh_hz is not None or "refresh_rate" in slot_status
 
     return False
 

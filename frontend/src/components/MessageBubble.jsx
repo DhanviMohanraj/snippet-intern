@@ -39,17 +39,15 @@ export default function MessageBubble({ message, onAskFollowUp }) {
         </div>
 
         {/* Clarification Callout */}
-        {requiresClarification && (
+        {requiresClarification && clarificationQuestion && clarificationQuestion.trim() !== (message.content || message.message || '').trim() && (
           <div className="clarification-callout" role="status">
             <div className="clarification-callout-header">
               <HelpCircle size={14} />
               <span>Clarification Needed</span>
             </div>
-            {clarificationQuestion && (
-              <div className="clarification-callout-question">
-                {clarificationQuestion}
-              </div>
-            )}
+            <div className="clarification-callout-question">
+              {clarificationQuestion}
+            </div>
           </div>
         )}
 

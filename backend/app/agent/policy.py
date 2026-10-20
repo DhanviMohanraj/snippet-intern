@@ -40,6 +40,29 @@ BUDGET_QUESTION: str = (
     "(e.g., ₹50,000, ₹1,00,000, or let me know if your budget is flexible)"
 )
 
+CATEGORY_BUDGET_QUESTIONS: dict[Category, str] = {
+    Category.HEADPHONES: (
+        "What is your budget or maximum price in INR? "
+        "(e.g., ₹3,000, ₹8,000, or let me know if your budget is flexible)"
+    ),
+    Category.PHONE: (
+        "What is your budget or maximum price in INR? "
+        "(e.g., ₹20,000, ₹40,000, or let me know if your budget is flexible)"
+    ),
+    Category.LAPTOP: (
+        "What is your budget or maximum price in INR? "
+        "(e.g., ₹50,000, ₹80,000, or let me know if your budget is flexible)"
+    ),
+    Category.TABLET: (
+        "What is your budget or maximum price in INR? "
+        "(e.g., ₹25,000, ₹45,000, or let me know if your budget is flexible)"
+    ),
+    Category.MONITOR: (
+        "What is your budget or maximum price in INR? "
+        "(e.g., ₹12,000, ₹25,000, or let me know if your budget is flexible)"
+    ),
+}
+
 # Category-specific use case inquiry questions
 CATEGORY_USE_CASE_QUESTIONS: dict[Category, str] = {
     Category.LAPTOP: (
@@ -323,6 +346,8 @@ def decide_next_action(
             q_text = next_slot.question
             if next_slot.name == "use_cases" and requirements.category in CATEGORY_USE_CASE_QUESTIONS:
                 q_text = CATEGORY_USE_CASE_QUESTIONS[requirements.category]
+            elif next_slot.name == "budget" and requirements.category in CATEGORY_BUDGET_QUESTIONS:
+                q_text = CATEGORY_BUDGET_QUESTIONS[requirements.category]
 
             return PolicyDecision(
                 action=PolicyAction.ASK,

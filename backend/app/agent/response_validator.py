@@ -162,16 +162,32 @@ def build_fallback_recommendation_response(
 
     # 1. Handle No-Match scenario
     if not search_result.has_matches or not search_result.ranked_candidates:
-        excluded_reasons: list[str] = []
-        for ex in search_result.excluded_candidates[:3]:
-            for r in ex.rejection_reasons[:1]:
-                excluded_reasons.append(f"{ex.product.name}: {r}")
+        # Check if there are candidates that satisfied non-budget constraints but exceeded budget
+        over_budget = [
+            ex for ex in search_result.excluded_candidates
+            if any("budget_max" in r.lower() for r in ex.rejection_reasons)
+            and all("budget_max" in r.lower() or "budget_min" in r.lower() for r in ex.rejection_reasons)
+        ]
 
-        reasons_summary = f" ({'; '.join(excluded_reasons)})" if excluded_reasons else ""
-        msg = (
-            f"I could not find any {cat_name} in our catalogue that satisfy all your non-negotiable criteria{reasons_summary}. "
-            "Please consider adjusting your budget or relaxing specific constraints."
-        )
+        if over_budget and requirements.budget_max_inr is not None:
+            cheapest = min(over_budget, key=lambda x: x.product.price_inr)
+            diff = cheapest.product.price_inr - requirements.budget_max_inr
+            msg = (
+                f"I could not find any {cat_name}s in our catalogue that satisfy all your criteria within your budget of ₹{requirements.budget_max_inr:,}. "
+                f"The lowest-priced matching model is the {cheapest.product.name} at ₹{cheapest.product.price_inr:,} (₹{diff:,} above budget). "
+                f"Would you like to increase your budget to ₹{cheapest.product.price_inr:,} or consider relaxing specific constraints?"
+            )
+        else:
+            excluded_reasons: list[str] = []
+            for ex in search_result.excluded_candidates[:3]:
+                for r in ex.rejection_reasons[:1]:
+                    excluded_reasons.append(f"{ex.product.name}: {r}")
+
+            reasons_summary = f" ({'; '.join(excluded_reasons)})" if excluded_reasons else ""
+            msg = (
+                f"I could not find any {cat_name}s in our catalogue that satisfy all your non-negotiable criteria{reasons_summary}. "
+                "Please consider adjusting your budget or relaxing specific constraints."
+            )
 
         return RecommendationResponse(
             message=msg,
@@ -330,6 +346,29 @@ def check_claim_contradictions(
         if weight_matches:
             contradictions.append(
                 f"Contradictory monitor weight claim: text mentions {weight_matches[0]}kg, but catalogue does not track monitor weight."
+            )
+
+    # 7. Fabricated Active Noise Cancellation (ANC) on headphones lacking ANC
+    if product.category == Category.HEADPHONES and product.specs.get("anc") is not True:
+        if any(term in text_lower for term in ("active noise cancellation", "active noise cancelling", " anc ", "with anc")):
+            contradictions.append(
+                f"Contradictory ANC claim: text claims active noise cancellation, but catalogue specifies anc={product.specs.get('anc')}."
+            )
+
+    # 8. Fabricated bundled stylus on tablets
+    if product.category == Category.TABLET:
+        if any(term in text_lower for term in ("includes stylus", "comes with stylus", "bundled stylus", "includes pen", "comes with pen", "bundled pen", "includes apple pencil", "includes s-pen", "includes s pen")):
+            if not any("includes" in f.lower() and ("pen" in f.lower() or "stylus" in f.lower()) for f in product.features):
+                contradictions.append(
+                    "Contradictory stylus claim: text claims stylus is included, but catalogue does not confirm bundled stylus."
+                )
+
+    # 9. Fabricated color gamut calibration claims
+    if any(term in text_lower for term in ("100% srgb", "100% dci-p3", "delta e < 2", "delta e < 1")):
+        feat_str = " ".join(product.features).lower()
+        if not any(term in feat_str for term in ("srgb", "dci-p3", "delta e")):
+            contradictions.append(
+                "Contradictory color accuracy claim: text claims specific color calibration not verified in catalogue features."
             )
 
     return contradictions

@@ -252,6 +252,8 @@ export default function App() {
     } catch (err) {
       setErrorMessage(err.message || 'Failed to get recommendation from agent.');
       setLastFailedMessage(cleanText);
+      // Remove optimistic user turn so retrying does not create duplicate entries
+      setMessages((prev) => prev.slice(0, prev.length - 1));
     } finally {
       setIsLoading(false);
     }

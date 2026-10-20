@@ -535,6 +535,212 @@ def evaluate_candidate(product: Product, requirements: Requirements) -> Candidat
             unverifiable.append(chk)
             rejection_reasons.append(chk.reason)
 
+    # 12. Form Factor check (Headphones)
+    if requirements.hard.form_factor is not None:
+        requested_ff = requirements.hard.form_factor.strip().lower()
+        if product.category == Category.HEADPHONES:
+            actual_type = str(product.specs.get("type", "")).strip().lower()
+            if not actual_type:
+                chk = ConstraintCheck(
+                    name="form_factor",
+                    status=ConstraintStatus.UNKNOWN,
+                    required=requested_ff,
+                    actual=None,
+                    reason="Headphone record lacks 'type' specification; cannot verify form factor compliance.",
+                )
+                unverifiable.append(chk)
+                rejection_reasons.append(chk.reason)
+            elif actual_type == requested_ff:
+                passed.append(
+                    ConstraintCheck(
+                        name="form_factor",
+                        status=ConstraintStatus.PASS,
+                        required=requested_ff,
+                        actual=actual_type,
+                        reason=f"Headphone form factor '{actual_type}' matches requested '{requested_ff}'.",
+                    )
+                )
+            else:
+                chk = ConstraintCheck(
+                    name="form_factor",
+                    status=ConstraintStatus.FAIL,
+                    required=requested_ff,
+                    actual=actual_type,
+                    reason=f"Headphone type '{actual_type}' does not match requested '{requested_ff}'.",
+                )
+                failed.append(chk)
+                rejection_reasons.append(chk.reason)
+        else:
+            chk = ConstraintCheck(
+                name="form_factor",
+                status=ConstraintStatus.UNKNOWN,
+                required=requested_ff,
+                actual=None,
+                reason=f"Category '{product.category.value}' does not support form factor constraints.",
+            )
+            unverifiable.append(chk)
+            rejection_reasons.append(chk.reason)
+
+    # 13. Wireless Connectivity check (Headphones)
+    if requirements.hard.requires_wireless is not None:
+        if product.category == Category.HEADPHONES:
+            actual_wireless = product.specs.get("wireless")
+            if actual_wireless is None:
+                chk = ConstraintCheck(
+                    name="requires_wireless",
+                    status=ConstraintStatus.UNKNOWN,
+                    required=requirements.hard.requires_wireless,
+                    actual=None,
+                    reason="Headphone record lacks 'wireless' specification; cannot verify wireless compliance.",
+                )
+                unverifiable.append(chk)
+                rejection_reasons.append(chk.reason)
+            elif actual_wireless == requirements.hard.requires_wireless:
+                passed.append(
+                    ConstraintCheck(
+                        name="requires_wireless",
+                        status=ConstraintStatus.PASS,
+                        required=requirements.hard.requires_wireless,
+                        actual=actual_wireless,
+                        reason=f"Wireless status ({actual_wireless}) satisfies requirement.",
+                    )
+                )
+            else:
+                chk = ConstraintCheck(
+                    name="requires_wireless",
+                    status=ConstraintStatus.FAIL,
+                    required=requirements.hard.requires_wireless,
+                    actual=actual_wireless,
+                    reason=f"Product wireless={actual_wireless} does not match required {requirements.hard.requires_wireless}.",
+                )
+                failed.append(chk)
+                rejection_reasons.append(chk.reason)
+
+    # 14. Active Noise Cancellation (ANC) check (Headphones)
+    if requirements.hard.requires_anc is True:
+        if product.category == Category.HEADPHONES:
+            actual_anc = product.specs.get("anc")
+            if actual_anc is None:
+                chk = ConstraintCheck(
+                    name="requires_anc",
+                    status=ConstraintStatus.UNKNOWN,
+                    required=True,
+                    actual=None,
+                    reason="Headphone record lacks 'anc' specification; cannot verify ANC compliance.",
+                )
+                unverifiable.append(chk)
+                rejection_reasons.append(chk.reason)
+            elif actual_anc is True:
+                passed.append(
+                    ConstraintCheck(
+                        name="requires_anc",
+                        status=ConstraintStatus.PASS,
+                        required=True,
+                        actual=True,
+                        reason="Active Noise Cancellation (ANC) verified.",
+                    )
+                )
+            else:
+                chk = ConstraintCheck(
+                    name="requires_anc",
+                    status=ConstraintStatus.FAIL,
+                    required=True,
+                    actual=actual_anc,
+                    reason=f"Active Noise Cancellation (ANC) required, but product has anc={actual_anc}.",
+                )
+                failed.append(chk)
+                rejection_reasons.append(chk.reason)
+
+    # 15. Stylus Input Support check (Tablets)
+    if requirements.hard.requires_stylus is not None:
+        if product.category == Category.TABLET:
+            actual_stylus = product.specs.get("stylus_support")
+            if actual_stylus is None:
+                chk = ConstraintCheck(
+                    name="requires_stylus",
+                    status=ConstraintStatus.UNKNOWN,
+                    required=requirements.hard.requires_stylus,
+                    actual=None,
+                    reason="Tablet record lacks 'stylus_support' specification; cannot verify stylus compatibility.",
+                )
+                unverifiable.append(chk)
+                rejection_reasons.append(chk.reason)
+            elif actual_stylus == requirements.hard.requires_stylus:
+                passed.append(
+                    ConstraintCheck(
+                        name="requires_stylus",
+                        status=ConstraintStatus.PASS,
+                        required=requirements.hard.requires_stylus,
+                        actual=actual_stylus,
+                        reason=f"Stylus support ({actual_stylus}) matches requirement.",
+                    )
+                )
+            else:
+                chk = ConstraintCheck(
+                    name="requires_stylus",
+                    status=ConstraintStatus.FAIL,
+                    required=requirements.hard.requires_stylus,
+                    actual=actual_stylus,
+                    reason=f"Tablet stylus support={actual_stylus} does not match required {requirements.hard.requires_stylus}.",
+                )
+                failed.append(chk)
+                rejection_reasons.append(chk.reason)
+        else:
+            chk = ConstraintCheck(
+                name="requires_stylus",
+                status=ConstraintStatus.UNKNOWN,
+                required=requirements.hard.requires_stylus,
+                actual=None,
+                reason=f"Category '{product.category.value}' does not support stylus input constraints.",
+            )
+            unverifiable.append(chk)
+            rejection_reasons.append(chk.reason)
+
+    # 16. Minimum Refresh Rate check (Monitors)
+    if requirements.hard.min_refresh_hz is not None:
+        if product.category == Category.MONITOR:
+            actual_hz = product.specs.get("refresh_hz")
+            if actual_hz is None:
+                chk = ConstraintCheck(
+                    name="min_refresh_hz",
+                    status=ConstraintStatus.UNKNOWN,
+                    required=requirements.hard.min_refresh_hz,
+                    actual=None,
+                    reason="Monitor record lacks 'refresh_hz' specification; cannot verify refresh rate.",
+                )
+                unverifiable.append(chk)
+                rejection_reasons.append(chk.reason)
+            elif actual_hz >= requirements.hard.min_refresh_hz:
+                passed.append(
+                    ConstraintCheck(
+                        name="min_refresh_hz",
+                        status=ConstraintStatus.PASS,
+                        required=requirements.hard.min_refresh_hz,
+                        actual=actual_hz,
+                        reason=f"Refresh rate {actual_hz}Hz satisfies minimum requirement of {requirements.hard.min_refresh_hz}Hz.",
+                    )
+                )
+            else:
+                chk = ConstraintCheck(
+                    name="min_refresh_hz",
+                    status=ConstraintStatus.FAIL,
+                    required=requirements.hard.min_refresh_hz,
+                    actual=actual_hz,
+                    reason=f"Refresh rate {actual_hz}Hz fails minimum requirement of {requirements.hard.min_refresh_hz}Hz.",
+                )
+                failed.append(chk)
+                rejection_reasons.append(chk.reason)
+        else:
+            chk = ConstraintCheck(
+                name="min_refresh_hz",
+                status=ConstraintStatus.UNKNOWN,
+                required=requirements.hard.min_refresh_hz,
+                actual=None,
+                reason=f"Category '{product.category.value}' specifications do not track refresh rate in Hz.",
+            )
+            unverifiable.append(chk)
+            rejection_reasons.append(chk.reason)
+
     # Critical Rule: Product is eligible ONLY if all checks passed, with zero failures and zero unknowns
     is_eligible = (len(failed) == 0 and len(unverifiable) == 0)
 
@@ -658,20 +864,30 @@ def _score_display_quality(product: Product) -> tuple[float, str]:
     score = 65.0
     highlights: list[str] = []
 
-    if "oled" in features_text or "oled" in specs_text or "amoled" in features_text:
+    # Panel check
+    panel_val = str(product.specs.get("panel", "")).lower()
+    if "oled" in features_text or "oled" in specs_text or "amoled" in features_text or "oled" in panel_val:
         score = 90.0
         highlights.append("OLED panel")
-    elif "ips" in features_text or "ips" in specs_text:
+    elif "ips" in features_text or "ips" in specs_text or "ips" in panel_val:
         score = 75.0
         highlights.append("IPS display")
 
-    if any(h in features_text for h in ("120hz", "144hz", "165hz", "240hz")):
+    # Refresh rate check
+    refresh_val = product.specs.get("refresh_hz")
+    if (refresh_val and refresh_val >= 120) or any(h in features_text for h in ("120hz", "144hz", "165hz", "240hz")):
         score = min(100.0, score + 10.0)
-        highlights.append("high refresh rate")
+        hz_tag = f"{refresh_val}Hz" if refresh_val else "high"
+        highlights.append(f"{hz_tag} refresh rate")
 
-    if "4k" in features_text or "3.2k" in features_text or "retina" in features_text:
+    # Resolution check
+    res_val = str(product.specs.get("resolution", "")).lower()
+    if "3840" in res_val or "4k" in res_val or "4k" in features_text or "3.2k" in features_text or "retina" in features_text:
         score = min(100.0, score + 10.0)
         highlights.append("high resolution")
+    elif "2560" in res_val or "1440" in res_val or "qhd" in features_text:
+        score = min(100.0, score + 5.0)
+        highlights.append("QHD resolution")
 
     tag = ", ".join(highlights) if highlights else "standard display"
     return round(score, 1), f"Display features ({tag}) rated {score:.1f}/100."
@@ -723,6 +939,40 @@ def _score_noise_cancellation(product: Product) -> tuple[float, str, bool]:
         return 50.0, "ANC specification unavailable; assigned neutral score.", True
 
     return 50.0, f"Category '{product.category.value}' does not support noise cancellation evaluation.", False
+
+
+def _score_microphone_quality(product: Product) -> tuple[float, str, bool]:
+    """Score microphone clarity and call performance for headphones."""
+    if product.category == Category.HEADPHONES:
+        feat = " ".join(product.features).lower()
+        if "enc" in feat or "boom mic" in feat or "dual mic" in feat or "quad mic" in feat:
+            return 95.0, "Environmental Noise Cancellation (ENC) dual/boom microphones verified for clear voice calls.", True
+        if "mic" in feat or any("call" in u.lower() for u in product.intended_use):
+            return 82.0, "Integrated microphone verified for voice calls and online classes.", True
+        return 65.0, "Standard microphone for calls.", True
+
+    return 50.0, f"Category '{product.category.value}' does not support dedicated microphone evaluation.", False
+
+
+def _score_comfort(product: Product) -> tuple[float, str, bool]:
+    """Score physical comfort and extended-wear suitability for headphones."""
+    if product.category == Category.HEADPHONES:
+        feat = " ".join(product.features).lower()
+        score = 70.0
+        details = []
+        if "memory foam" in feat or "plush" in feat or "cushion" in feat:
+            score += 15.0
+            details.append("plush memory foam ear cushions")
+        if "ergonomic" in feat or "lightweight" in feat:
+            score += 10.0
+            details.append("ergonomic headband")
+        w_g = product.specs.get("weight_g")
+        if w_g and w_g < 250:
+            score = min(100.0, score + 5.0)
+            details.append(f"lightweight {w_g}g weight")
+        return min(100.0, score), f"Comfort features: {', '.join(details) if details else 'standard earcups'}.", True
+
+    return 50.0, f"Category '{product.category.value}' does not support comfort evaluation.", False
 
 
 def _score_build_quality(product: Product) -> tuple[float, str]:
@@ -801,6 +1051,20 @@ def score_candidate(product: Product, requirements: Requirements) -> ScoreBreakd
     explanations["noise_cancellation"] = anc_exp
     if not anc_supp and "noise_cancellation" in requirements.preferences:
         unsupported_preferences.append("noise_cancellation")
+
+    # Microphone Quality
+    mic_score, mic_exp, mic_supp = _score_microphone_quality(product)
+    preference_scores["microphone_quality"] = mic_score
+    explanations["microphone_quality"] = mic_exp
+    if not mic_supp and "microphone_quality" in requirements.preferences:
+        unsupported_preferences.append("microphone_quality")
+
+    # Comfort
+    comf_score, comf_exp, comf_supp = _score_comfort(product)
+    preference_scores["comfort"] = comf_score
+    explanations["comfort"] = comf_exp
+    if not comf_supp and "comfort" in requirements.preferences:
+        unsupported_preferences.append("comfort")
 
     # Build Quality
     bq_score, bq_exp = _score_build_quality(product)

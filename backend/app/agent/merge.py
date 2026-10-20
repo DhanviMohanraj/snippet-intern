@@ -51,6 +51,11 @@ HARD_CONSTRAINT_REMOVAL_MAP = {
     "vram": "min_vram_gb",
     "exclude_brands": "exclude_brands",
     "in_stock": "in_stock",
+    "form_factor": "form_factor",
+    "wireless": "requires_wireless",
+    "requires_wireless": "requires_wireless",
+    "anc": "requires_anc",
+    "requires_anc": "requires_anc",
 }
 
 
@@ -301,6 +306,12 @@ def merge(
                 new_hard_dict["min_vram_gb"] = delta.hard.min_vram_gb
             if delta.hard.in_stock is not None:
                 new_hard_dict["in_stock"] = delta.hard.in_stock
+            if delta.hard.form_factor is not None:
+                new_hard_dict["form_factor"] = delta.hard.form_factor
+            if delta.hard.requires_wireless is not None:
+                new_hard_dict["requires_wireless"] = delta.hard.requires_wireless
+            if delta.hard.requires_anc is not None:
+                new_hard_dict["requires_anc"] = delta.hard.requires_anc
 
             if delta.hard.exclude_brands:
                 existing_brands = list(new_hard_dict.get("exclude_brands", []))

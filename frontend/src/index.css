@@ -562,6 +562,15 @@ html, body, #root {
   margin-bottom: 0.2rem;
 }
 
+.message-bubble.user .message-header {
+  color: #c7d2fe;
+}
+
+.message-bubble.user .message-turn-tag {
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+}
+
 .message-turn-tag {
   background: var(--bg-surface-elevated);
   padding: 0.15rem 0.5rem;

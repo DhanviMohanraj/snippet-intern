@@ -228,8 +228,20 @@ def parse_inr_budget_expression(raw: str | int | float | None) -> int | None:
     if not text:
         return None
 
+    # Strip non-currency spec quantities (e.g. 16GB, 256GB, 1TB, 108MP, 5000mAh, 144Hz, 1.5kg)
+    cleaned = re.sub(
+        r"\b\d+(?:\.\d+)?\s*(?:gb|tb|gigs?|mp|mah|hz|inch|inches|kg|g)\b",
+        " ",
+        text,
+        flags=re.IGNORECASE,
+    )
     # Clean currency symbols and prefixes
-    cleaned = re.sub(r"[₹,]|(?:\b(?:rs|inr|rupees|under|below|around|approx|upto|up to|max)\b)", " ", text, flags=re.IGNORECASE)
+    cleaned = re.sub(
+        r"[₹,]|(?:\b(?:rs|inr|rupees|under|below|around|approx|upto|up to|max|budget|to|increase)\b)",
+        " ",
+        cleaned,
+        flags=re.IGNORECASE,
+    )
     cleaned = cleaned.strip()
 
     # 1. Check for Lakh (1,00,000)
@@ -413,6 +425,9 @@ def normalize(delta: RequirementsDelta) -> RequirementsDelta:
             min_vram_gb=delta.hard.min_vram_gb,
             exclude_brands=exclude_brands,
             in_stock=delta.hard.in_stock,
+            form_factor=delta.hard.form_factor,
+            requires_wireless=delta.hard.requires_wireless,
+            requires_anc=delta.hard.requires_anc,
         )
 
     # 7. Normalize ML Mode

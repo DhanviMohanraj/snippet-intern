@@ -23,6 +23,8 @@ RECOGNIZED_PREFERENCES: set[str] = {
     "gpu_power",
     "build_quality",
     "noise_cancellation",
+    "microphone_quality",
+    "comfort",
 }
 
 CATEGORY_ALIASES: dict[str, Category] = {
@@ -81,6 +83,15 @@ PREFERENCE_ALIASES: dict[str, str] = {
     "durability": "build_quality",
     "noise_cancellation": "noise_cancellation",
     "anc": "noise_cancellation",
+    "microphone_quality": "microphone_quality",
+    "microphone": "microphone_quality",
+    "mic": "microphone_quality",
+    "call_quality": "microphone_quality",
+    "calls": "microphone_quality",
+    "comfort": "comfort",
+    "comfortable": "comfort",
+    "cushions": "comfort",
+    "ear_cushions": "comfort",
 }
 
 REMOVAL_FIELD_ALIASES: dict[str, str] = {
@@ -103,6 +114,15 @@ REMOVAL_FIELD_ALIASES: dict[str, str] = {
     "ram": "min_ram_gb",
     "storage": "min_storage_gb",
     "anc": "noise_cancellation",
+    "form_factor": "form_factor",
+    "wireless": "requires_wireless",
+    "microphone": "microphone_quality",
+    "mic": "microphone_quality",
+    "comfort": "comfort",
+    "stylus": "requires_stylus",
+    "pen": "requires_stylus",
+    "refresh_rate": "min_refresh_hz",
+    "refresh_hz": "min_refresh_hz",
 }
 
 # Recognized fields and preference/constraint keys that can be explicitly cleared
@@ -125,6 +145,11 @@ VALID_REMOVABLE_FIELDS: set[str] = {
     "min_vram_gb",
     "exclude_brands",
     "in_stock",
+    "form_factor",
+    "requires_wireless",
+    "requires_anc",
+    "requires_stylus",
+    "min_refresh_hz",
 } | RECOGNIZED_PREFERENCES | set(REMOVAL_FIELD_ALIASES.keys())
 
 ML_MODES: set[str] = {"local", "cloud"}
@@ -159,6 +184,11 @@ class HardConstraints(BaseModel):
     min_vram_gb: int | None = Field(default=None, description="Minimum dedicated VRAM in gigabytes", ge=0)
     exclude_brands: list[str] = Field(default_factory=list, description="Brands explicitly excluded by user")
     in_stock: bool | None = Field(default=None, description="Whether product must currently be in stock")
+    form_factor: str | None = Field(default=None, description="Form factor (e.g. 'over-ear', 'in-ear')")
+    requires_wireless: bool | None = Field(default=None, description="Whether wireless connectivity is strictly required")
+    requires_anc: bool | None = Field(default=None, description="Whether Active Noise Cancellation is strictly required")
+    requires_stylus: bool | None = Field(default=None, description="Whether stylus/pen input support is strictly required")
+    min_refresh_hz: int | None = Field(default=None, description="Minimum screen refresh rate in Hz", gt=0)
 
     @field_validator("exclude_brands")
     @classmethod
@@ -166,6 +196,18 @@ class HardConstraints(BaseModel):
         if not isinstance(v, list):
             raise ValueError("exclude_brands must be a list of strings.")
         return [b.strip() for b in v if isinstance(b, str) and b.strip()]
+
+    @field_validator("form_factor")
+    @classmethod
+    def validate_form_factor(cls, v: str | None) -> str | None:
+        if v is None:
+            return None
+        s = v.strip().lower()
+        if "over" in s or "on-ear" in s or "on ear" in s:
+            return "over-ear"
+        if "in" in s or "tws" in s or "earbud" in s:
+            return "in-ear"
+        return s
 
 
 class Requirements(BaseModel):

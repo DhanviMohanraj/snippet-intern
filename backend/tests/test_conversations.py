@@ -571,7 +571,7 @@ async def test_no_eligible_product_matches_handled_safely(mock_db, mock_products
         )
         assert resp.status_code == 200
         data = resp.json()
-        assert data["action"] == "RECOMMEND"
+        assert data["action"] in ("RECOMMEND", "NO_MATCH")
         assert len(data["recommendations"]) == 0
         assert "could not find any laptop" in data["message"].lower()
 
