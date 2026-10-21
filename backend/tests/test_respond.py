@@ -220,7 +220,10 @@ async def test_response_tailored_to_use_case():
     # Use deterministic fallback to verify tailoring without LLM
     response = build_fallback_recommendation_response(req, search_result)
 
-    assert "machine_learning" in response.recommendations[0].reasoning
+    # The use case appears in readable form, never as the raw snake_case key.
+    reasoning = response.recommendations[0].reasoning
+    assert "machine learning" in reasoning
+    assert "machine_learning" not in reasoning
 
 
 @pytest.mark.asyncio

@@ -130,7 +130,7 @@ describe('App Integration & Conversational Shopping Flow', () => {
                 category: 'laptop',
                 price_inr: 64990,
                 rating: 4.5,
-                overall_score: 0.94,
+                overall_score: 94,
                 verified_specs: {
                   ram_gb: 16,
                   storage_gb: 512,

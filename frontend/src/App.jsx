@@ -214,6 +214,10 @@ export default function App() {
         clarification_question: turnResp.clarification_question,
         unresolved_contradictions: turnResp.unresolved_contradictions || [],
         recommendations: turnResp.recommendations || [],
+        // These live on the Module 9 envelope; without copying them here the
+        // Comparison Summary and Remaining Uncertainties callouts never render.
+        comparison_summary: turnResp.recommendation_response?.comparison_summary || null,
+        remaining_uncertainties: turnResp.recommendation_response?.remaining_uncertainties || [],
         can_recommend: turnResp.can_recommend,
         remaining_slots: turnResp.remaining_slots || [],
         slot_status: turnResp.slot_status || {},

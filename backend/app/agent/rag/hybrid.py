@@ -11,7 +11,7 @@ from typing import Sequence
 
 from app.agent.rag.bm25 import BM25Retriever
 from app.agent.rag.embeddings import EmbeddingProvider, LocalHashEmbeddingProvider
-from app.agent.rag.indexer import EvidenceIndex
+from app.agent.rag.indexer import EvidenceIndex, build_product_evidence_documents
 from app.agent.rag.models import (
     EvidenceDocument,
     ProductEvidenceSummary,
@@ -160,6 +160,28 @@ class HybridEvidenceRetriever:
             product_id=product.product_id,
             category=product.category,
         )
+
+        # Staleness guard: the index is built once from data/products.json, while
+        # `product` is the live MongoDB record. If they differ (DB seeded from a
+        # different file, or a record edited), indexed evidence would contradict
+        # the verified specs sent alongside it. Keep only evidence that matches
+        # the live record, and fill gaps from the live record itself.
+        live_docs = {d.source_field: d for d in build_product_evidence_documents(product)}
+        fresh = [s for s in retrieved if (ld := live_docs.get(s.document.source_field)) and ld.content == s.document.content]
+        if len(fresh) < len(retrieved):
+            logger.warning(
+                "Evidence index is stale for %s (%d of %d retrieved documents no longer match the catalogue record); "
+                "using the live record. Call rebuild_index() after reseeding.",
+                product.product_id, len(retrieved) - len(fresh), len(retrieved),
+            )
+        if len(fresh) < min(top_k, len(live_docs)):
+            used = {s.document.source_field for s in fresh}
+            for doc in live_docs.values():
+                if len(fresh) >= top_k:
+                    break
+                if doc.source_field not in used:
+                    fresh.append(ScoredEvidence(document=doc, score=0.0, retrieval_method="catalogue_record", rank=len(fresh) + 1))
+        retrieved = fresh
 
         # Determine unknown specifications according to schema
         expected_specs = CATEGORY_SPEC_SCHEMA.get(product.category, set())

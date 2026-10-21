@@ -97,7 +97,7 @@ describe('UI Components Unit Tests', () => {
       category: 'laptop',
       price_inr: 125000,
       rating: 4.7,
-      overall_score: 0.95,
+      overall_score: 95,
       verified_specs: {
         ram_gb: 16,
         storage_gb: 1000,

@@ -30,6 +30,32 @@ from app.models.response import (
 logger = get_logger("app.agent.response_validator")
 
 
+_NEGATION_RE = re.compile(
+    r"\b(?:not|no|without|lacks?|lacking|isn't|aren't|doesn't|don't|cannot|can't|"
+    r"unverified|unconfirmed|unavailable|missing|absent|neither|nor)\b"
+)
+
+
+def _affirmative_text(text: str) -> str:
+    """Return only the sentences that do not negate or hedge a feature.
+
+    Feature-presence checks (ANC, stylus, flicker-free, certifications, colour
+    gamut, dedicated GPU) must not fire on honest statements such as
+    "does not include ANC" or "sRGB coverage is not verified" — previously those
+    triggered a contradiction and discarded a correct LLM explanation.
+    """
+    sentences = re.split(r"(?<=[.!?;])\s+|\n+", text.lower())
+    kept = [s for s in sentences if s.strip() and not _NEGATION_RE.search(s)]
+    # Normalise hyphens so "low-blue-light" and "low blue light" compare equal.
+    return " " + " ".join(kept).replace("-", " ") + " "
+
+
+def _as_sentence(text: str) -> str:
+    """Return text as exactly one sentence: trimmed, with a single terminal full stop."""
+    cleaned = re.sub(r"[\s;,.]+$", "", text.strip())
+    return f"{cleaned}." if cleaned else ""
+
+
 def _collect_unverified_limitations(
     product: Product,
     requirements: Requirements,
@@ -159,15 +185,23 @@ def build_fallback_product_recommendation(
     p = candidate.product
     sb = candidate.score_breakdown
 
-    # 1. Build concise, grounded reasoning
-    use_case_str = (
-        ", ".join(requirements.use_cases) if requirements.use_cases else "your requirements"
+    # 1. Build concise, grounded reasoning.
+    # Each entry in candidate.reasons is already a full sentence ending in ".";
+    # joining them with "; " and appending "." produced "budget.; Strong ... score..".
+    # The match score is shown on the card itself, so it is not repeated in prose.
+    use_cases = [u.replace("_", " ") for u in requirements.use_cases if u.strip()]
+    if len(use_cases) > 1:
+        use_case_str = f"{', '.join(use_cases[:-1])} and {use_cases[-1]}"
+    elif use_cases:
+        use_case_str = use_cases[0]
+    else:
+        use_case_str = ""
+    opening = (
+        f"A strong fit for {use_case_str} use." if use_case_str
+        else "A strong fit for your stated requirements."
     )
-    score_desc = f"a composite match score of {candidate.overall_score:.1f}/100"
-    reasoning = (
-        f"The {p.name} ({p.brand}) is recommended for {use_case_str} with {score_desc}. "
-        f"{'; '.join(candidate.reasons[:2])}."
-    )
+    reason_sentences = [_as_sentence(r) for r in candidate.reasons[:2] if r and r.strip()]
+    reasoning = " ".join([opening, *reason_sentences])
 
     # 2. Build supported advantages from score breakdown & features
     advantages: list[str] = []
@@ -212,7 +246,9 @@ def build_fallback_product_recommendation(
             trade_offs.append(f"Refresh rate of {hz}Hz is adequate for office and casual gaming, but not high-frame-rate competitive esports.")
 
     if not trade_offs:
-        trade_offs.append("Priced near the upper threshold of its performance bracket.")
+        # Previously a generic filler ("Priced near the upper threshold of its
+        # performance bracket") that no catalogue field supports.
+        trade_offs.append("No notable trade-offs identified from the catalogue specifications.")
 
     # 4. Build match explanation from passed constraints
     passed_labels = [
@@ -220,7 +256,7 @@ def build_fallback_product_recommendation(
         if c.name in ("budget_max", "min_ram_gb", "min_storage_gb", "requires_gpu", "min_battery_hr", "screen_size_class")
     ]
     if passed_labels:
-        match_explanation = f"Verified compliance: {'; '.join(passed_labels[:3])}."
+        match_explanation = " ".join(_as_sentence(lbl) for lbl in passed_labels[:3])
     else:
         match_explanation = f"Priced at ₹{p.price_inr:,}, matching your category requirements."
 
@@ -379,6 +415,9 @@ def check_claim_contradictions(
     """
     contradictions: list[str] = []
     text_lower = text.lower()
+    # Affirmative-only, hyphen-normalised text for feature-presence checks.
+    claims = _affirmative_text(text)
+    features_norm = " ".join(product.features).lower().replace("-", " ")
 
     # 1. Price claim validation
     # Match patterns like: ₹50,000, Rs. 50000, Rs 50,000, INR 50000
@@ -426,29 +465,26 @@ def check_claim_contradictions(
             continue
 
     # 3. Storage claim validation
-    storage_matches = re.findall(r"(\d+)\s*(?:gb|tb)\s*(?:of\s*)?(?:ssd|hdd|storage)", text_lower)
+    # Unit is captured per match: the old check converted every number to TB
+    # whenever "tb" appeared anywhere in the text.
+    storage_matches = re.findall(r"(\d+)\s*(gb|tb)\s*(?:of\s*)?(?:ssd|hdd|storage)", text_lower)
     cat_storage = product.specs.get("storage_gb")
-    for sm in storage_matches:
-        try:
-            num = int(sm)
-            # If in TB, convert 1TB to 1024GB for comparison
-            if "tb" in text_lower and num <= 4:
-                num_gb = num * 1024
-            else:
-                num_gb = num
-            if cat_storage is not None and abs(num_gb - cat_storage) > 30:
-                contradictions.append(
-                    f"Contradictory storage claim: text mentions {sm}, but catalogue specifies {cat_storage}GB."
-                )
-        except ValueError:
-            continue
+    for sm, unit in storage_matches:
+        num = int(sm)
+        num_gb = num * 1024 if unit == "tb" else num
+        if cat_storage is not None and abs(num_gb - cat_storage) > 30 and not (
+            unit == "tb" and abs(num * 1000 - cat_storage) <= 30
+        ):
+            contradictions.append(
+                f"Contradictory storage claim: text mentions {sm}{unit.upper()}, but catalogue specifies {cat_storage}GB."
+            )
 
     # 4. Discrete GPU claims on integrated graphics
     if product.category == Category.LAPTOP:
         vram = product.specs.get("vram_gb", 0)
         gpu = product.specs.get("gpu", "").lower()
         if vram == 0 and not any(k in gpu for k in ("rtx", "gtx", "radeon rx", "arc a")):
-            if any(term in text_lower for term in ("dedicated rtx", "discrete rtx", "dedicated nvidia", "dedicated gpu", "discrete gpu", "geforce rtx")):
+            if any(term in claims for term in ("dedicated rtx", "discrete rtx", "dedicated nvidia", "dedicated gpu", "discrete gpu", "geforce rtx")):
                 contradictions.append(
                     f"Contradictory GPU claim: text claims dedicated GPU, but product has integrated graphics ('{product.specs.get('gpu')}')."
                 )
@@ -467,6 +503,37 @@ def check_claim_contradictions(
                 contradictions.append(
                     f"Contradictory battery claim: text claims {hr_matches[0]} hours battery runtime, but catalogue lacks battery_hr specification."
                 )
+    else:
+        # 5b. Battery runtime present in catalogue: the stated hours must match it.
+        cat_hr = float(product.specs["battery_hr"])
+        hr_claims = re.findall(r"(\d+(?:\.\d+)?)\s*(?:hours?|hrs?)\b", text_lower)
+        for hc in hr_claims:
+            val = float(hc)
+            # Ignore small numbers that are usage durations ("8 hours of coding daily").
+            if val >= 3 and abs(val - cat_hr) > 0.5 and re.search(
+                rf"{re.escape(hc)}\s*(?:hours?|hrs?)\s*(?:of\s*)?(?:battery|runtime|backup)|"
+                rf"(?:battery|runtime|backup)[^.]{{0,40}}?{re.escape(hc)}\s*(?:hours?|hrs?)",
+                text_lower,
+            ):
+                contradictions.append(
+                    f"Contradictory battery claim: text mentions {hc} hours, but catalogue specifies {cat_hr:g} hours."
+                )
+
+    # 5c. Weight values must match the catalogue when it records them.
+    cat_kg = product.specs.get("weight_kg")
+    if cat_kg is not None and product.category != Category.MONITOR:
+        for wk in re.findall(r"(\d+(?:\.\d+)?)\s*kg\b", text_lower):
+            if abs(float(wk) - float(cat_kg)) > 0.05:
+                contradictions.append(
+                    f"Contradictory weight claim: text mentions {wk}kg, but catalogue specifies {cat_kg}kg."
+                )
+    cat_g = product.specs.get("weight_g")
+    if cat_g is not None:
+        for wg in re.findall(r"(\d{2,4})\s*(?:g|grams)\b", text_lower):
+            if abs(float(wg) - float(cat_g)) > 3:
+                contradictions.append(
+                    f"Contradictory weight claim: text mentions {wg}g, but catalogue specifies {cat_g}g."
+                )
 
     # 6. Fabricated monitor weight
     if product.category == Category.MONITOR:
@@ -478,40 +545,51 @@ def check_claim_contradictions(
 
     # 7. Fabricated Active Noise Cancellation (ANC) on headphones lacking ANC
     if product.category == Category.HEADPHONES and product.specs.get("anc") is not True:
-        if any(term in text_lower for term in ("active noise cancellation", "active noise cancelling", " anc ", "with anc")):
+        if any(term in claims for term in ("active noise cancellation", "active noise cancelling", " anc ", "with anc", " anc,", " anc.")):
             contradictions.append(
                 f"Contradictory ANC claim: text claims active noise cancellation, but catalogue specifies anc={product.specs.get('anc')}."
             )
 
     # 8. Fabricated bundled stylus on tablets
     if product.category == Category.TABLET:
-        if any(term in text_lower for term in ("includes stylus", "comes with stylus", "bundled stylus", "includes pen", "comes with pen", "bundled pen", "includes apple pencil", "with apple pencil", "with stylus", "stylus included", "pen included")):
+        if any(term in claims for term in ("includes stylus", "comes with stylus", "bundled stylus", "includes pen", "comes with pen", "bundled pen", "includes apple pencil", "with apple pencil", "with stylus", "stylus included", "pen included")):
             if not any("includes" in f.lower() and ("pen" in f.lower() or "stylus" in f.lower()) for f in product.features):
                 contradictions.append(
                     "Contradictory stylus claim: text claims stylus is included, but catalogue does not confirm bundled stylus."
                 )
 
     # 9. Fabricated color gamut calibration claims
-    if any(term in text_lower for term in ("100% srgb", "99% srgb", "srgb", "dci-p3", "adobe rgb", "delta e", "factory calibrated", "color accurate", "colour accurate")):
-        feat_str = " ".join(product.features).lower()
-        spec_str = " ".join(str(v) for v in product.specs.values()).lower()
-        if not any(term in (feat_str + " " + spec_str) for term in ("srgb", "dci-p3", "adobe rgb", "delta e", "calibrated", "color accurate")):
+    if any(term in claims for term in ("srgb", "dci p3", "adobe rgb", "delta e", "factory calibrated", "color accurate", "colour accurate", "calibrated")):
+        spec_str = " ".join(str(v) for v in product.specs.values()).lower().replace("-", " ")
+        if not any(term in (features_norm + " " + spec_str) for term in ("srgb", "dci p3", "adobe rgb", "delta e", "calibrat", "color accurate")):
             contradictions.append(
                 "Contradictory color / colour accuracy claim: text asserts verified color calibration / gamut, but this is not verified in catalogue features."
             )
 
-    # 10. Fabricated eye-comfort / low blue light certification claims
-    if any(term in text_lower for term in ("eye-comfort certified", "eye comfort certified", "low blue light certified", "tuv certified", "eye care certified", "certified eye comfort", "certified low blue light")):
-        feat_str = " ".join(product.features).lower()
-        if not any(k in feat_str for k in ("low blue light", "eye comfort", "eye care", "tuv")):
+    # 10. Eye-comfort / low blue light claims.
+    # Any affirmative low-blue-light / TÜV / eye-care claim needs a matching
+    # catalogue feature; a *certification* claim additionally needs the feature
+    # itself to say "certified". The old check only matched phrases containing
+    # "certified", so "low-blue-light certification" slipped through.
+    # "eye comfort" alone is not listed: "you prioritised eye comfort" describes the
+    # user's preference, not a product claim.
+    eye_terms = (
+        "low blue light", "blue light filter", " tuv", "tüv", "eye care",
+        "eye comfort certif", "eye comfort feature", "reduces eye strain",
+        "reduce eye strain", "less eye strain",
+    )
+    if any(term in claims for term in eye_terms):
+        eye_feature_listed = any(k in features_norm for k in ("low blue light", "eye comfort", "eye care", "tuv", "tüv"))
+        claims_certification = re.search(r"certifi|tuv|tüv", claims) is not None
+        feature_certified = re.search(r"certifi|tuv|tüv", features_norm) is not None
+        if not eye_feature_listed or (claims_certification and not feature_certified):
             contradictions.append(
                 "Contradictory certification claim: text asserts eye-comfort / low blue light certification, but catalogue features do not verify this certification."
             )
 
     # 11. Fabricated flicker-free operation claims
-    if any(term in text_lower for term in ("flicker-free", "flicker free", "anti-flicker", "flicker-less", "without flicker")):
-        feat_str = " ".join(product.features).lower()
-        if not any(k in feat_str for k in ("flicker-free", "flicker free", "anti-flicker")):
+    if any(term in claims for term in ("flicker free", "anti flicker", "flicker less")):
+        if not any(k in features_norm for k in ("flicker free", "anti flicker")):
             contradictions.append(
                 "Contradictory display claim: text asserts flicker-free operation, but catalogue features do not verify flicker-free / anti-flicker operation."
             )
@@ -559,15 +637,15 @@ def check_claim_contradictions(
     # 15. Unknown or unverified attribute claims based on RAG evidence summary
     if evidence_summary is not None and getattr(evidence_summary, "unknown_attributes", None):
         for unk in evidence_summary.unknown_attributes:
-            if unk == "stylus_support" and any(kw in text_lower for kw in ("stylus support", "supports stylus", "pen support", "apple pencil", "s-pen")):
+            if unk == "stylus_support" and any(kw in claims for kw in ("stylus support", "supports stylus", "pen support", "apple pencil", "s pen")):
                 contradictions.append(
                     "Contradictory claim: text asserts stylus support, but catalogue record does not specify stylus_support."
                 )
-            elif unk == "anc" and any(kw in text_lower for kw in ("active noise cancellation", "with anc", "active noise cancelling")):
+            elif unk == "anc" and any(kw in claims for kw in ("active noise cancellation", "with anc", "active noise cancelling")):
                 contradictions.append(
                     "Contradictory claim: text asserts Active Noise Cancellation, but catalogue lacks verified anc specification."
                 )
-            elif unk in ("gpu", "vram_gb") and any(kw in text_lower for kw in ("dedicated rtx", "discrete gpu", "dedicated gpu", "nvidia geforce")):
+            elif unk in ("gpu", "vram_gb") and any(kw in claims for kw in ("dedicated rtx", "discrete gpu", "dedicated gpu", "nvidia geforce")):
                 contradictions.append(
                     f"Contradictory claim: text asserts dedicated GPU, but catalogue lacks '{unk}' specification."
                 )

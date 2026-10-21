@@ -790,14 +790,19 @@ def evaluate_candidate(product: Product, requirements: Requirements) -> Candidat
     # 18. Eye-Comfort Certification requirement
     if requirements.hard.requires_eye_comfort is True:
         feat_str = " ".join(product.features).lower()
-        if any(kw in feat_str for kw in ("low blue light", "eye-care", "eye comfort", "tuv")):
+        eye_feats = [
+            f for f in product.features
+            if any(kw in f.lower() for kw in ("low blue light", "eye-care", "eye comfort", "tuv"))
+        ]
+        if eye_feats:
             passed.append(
                 ConstraintCheck(
                     name="requires_eye_comfort",
                     status=ConstraintStatus.PASS,
                     required=True,
                     actual=True,
-                    reason="Eye-comfort / low-blue-light certification verified in catalogue.",
+                    # Quote the listed feature: "Eye-Care Ambient Light Sensor" is not a certification.
+                    reason=f"Catalogue lists eye-comfort feature: {', '.join(eye_feats)}.",
                 )
             )
         else:
@@ -987,6 +992,21 @@ def _score_battery_life(product: Product) -> tuple[float, str]:
     return 40.0, "Category does not feature portable battery operation."
 
 
+def _refresh_rate_matters(requirements: Requirements | None) -> bool:
+    """True when the user's stated needs make a high refresh rate relevant."""
+    if requirements is None:
+        return False
+    if requirements.preferences.get("refresh_rate", 0) > 0:
+        return True
+    if requirements.hard.min_refresh_hz:
+        return True
+    for uc in requirements.use_cases:
+        uc_low = uc.lower()
+        if "gaming" in uc_low and not any(q in uc_low for q in ("occasional", "casual", "light")):
+            return True
+    return False
+
+
 def _score_display_quality(product: Product, requirements: Requirements | None = None) -> tuple[float, str]:
     """Score display quality using panel type, refresh rate, resolution, and screen size proximity."""
     features_text = " ".join(product.features).lower()
@@ -1004,9 +1024,15 @@ def _score_display_quality(product: Product, requirements: Requirements | None =
         score = 75.0
         highlights.append("IPS display")
 
-    # Refresh rate check
+    # Refresh rate check: only rewarded when the user actually cares about it
+    # (a refresh_rate preference, a minimum-Hz constraint, or a non-casual gaming
+    # use case). Previously every 120Hz+ panel got +10 to "display quality",
+    # so refresh rate outranked text clarity for users who said they did not need it.
     refresh_val = product.specs.get("refresh_hz")
-    if (refresh_val and refresh_val >= 120) or any(h in features_text for h in ("120hz", "144hz", "165hz", "240hz")):
+    if _refresh_rate_matters(requirements) and (
+        (refresh_val and refresh_val >= 120)
+        or any(h in features_text for h in ("120hz", "144hz", "165hz", "240hz"))
+    ):
         score = min(100.0, score + 10.0)
         hz_tag = f"{refresh_val}Hz" if refresh_val else "high"
         highlights.append(f"{hz_tag} refresh rate")
@@ -1035,9 +1061,14 @@ def _score_display_quality(product: Product, requirements: Requirements | None =
                 elif diff >= 2.5:
                     score = max(40.0, score - 15.0)
 
-        if any(kw in features_text for kw in ("low blue light", "anti-flicker", "flicker-free", "eye-care")):
+        eye_feats = [
+            f for f in product.features
+            if any(kw in f.lower() for kw in ("low blue light", "anti-flicker", "flicker-free", "eye-care"))
+        ]
+        if eye_feats:
             score = min(100.0, score + 8.0)
-            highlights.append("eye-comfort certification")
+            # Name the listed feature rather than claiming a "certification".
+            highlights.extend(eye_feats)
 
     tag = ", ".join(highlights) if highlights else "standard display"
     return round(score, 1), f"Display features ({tag}) rated {score:.1f}/100."
@@ -1046,22 +1077,26 @@ def _score_display_quality(product: Product, requirements: Requirements | None =
 def _score_eye_comfort(product: Product) -> tuple[float, str, bool]:
     """Score verified eye-comfort and flicker-free protections for monitors."""
     if product.category == Category.MONITOR:
-        feat_str = " ".join(product.features).lower()
+        # Quote the catalogue feature text verbatim. Earlier code relabelled any
+        # "low blue light" mention as "Low Blue Light Certified", turning a mode
+        # into a certification the catalogue never stated.
         score = 50.0
-        details = []
-        if any(k in feat_str for k in ("low blue light", "tuv")):
-            score += 25.0
-            details.append("Low Blue Light Certified")
-        if any(k in feat_str for k in ("anti-flicker", "flicker-free", "flicker free")):
-            score += 25.0
-            details.append("Anti-Flicker / Flicker-Free")
-        if "eye-care" in feat_str:
-            score += 15.0
-            details.append("Eye-Care sensor")
-        if details:
+        matched: list[str] = []
+        for feat in product.features:
+            f_low = feat.lower()
+            if any(k in f_low for k in ("low blue light", "tuv", "tüv")):
+                score += 25.0
+                matched.append(feat)
+            elif any(k in f_low for k in ("anti-flicker", "flicker-free", "flicker free")):
+                score += 25.0
+                matched.append(feat)
+            elif any(k in f_low for k in ("eye-care", "eye care", "eye comfort")):
+                score += 15.0
+                matched.append(feat)
+        if matched:
             final_s = min(100.0, score)
-            return final_s, f"Verified eye protection: {', '.join(details)} ({final_s:.0f}/100).", True
-        return 50.0, "Eye comfort certification not verified in catalogue.", True
+            return final_s, f"Catalogue lists eye-comfort features: {', '.join(matched)}.", True
+        return 50.0, "No eye-comfort features are listed in the catalogue for this model.", True
 
     return 50.0, f"Category '{product.category.value}' does not track eye-comfort.", False
 
@@ -1205,7 +1240,9 @@ def _score_budget_value(product: Product, requirements: Requirements) -> tuple[f
     max_b = requirements.budget_max_inr or 50000
     ratio = product.price_inr / max_b
     score = round(max(20.0, min(100.0, 100.0 - (ratio * 50.0))), 1)
-    return score, f"Priced at ₹{product.price_inr:,}, offering strong value within your budget."
+    if requirements.budget_max_inr:
+        return score, f"Priced at ₹{product.price_inr:,} against your ₹{requirements.budget_max_inr:,} budget."
+    return score, f"Priced at ₹{product.price_inr:,}."
 
 
 def score_candidate(product: Product, requirements: Requirements) -> ScoreBreakdown:
@@ -1392,22 +1429,26 @@ def _generate_candidate_reasons(
     if requirements.budget_max_inr is not None:
         diff = requirements.budget_max_inr - product.price_inr
         if diff >= 5000:
-            reasons.append(f"Priced at ₹{product.price_inr:,}, saving ₹{diff:,} under your ₹{requirements.budget_max_inr:,} budget.")
+            reasons.append(f"Priced at ₹{product.price_inr:,}, which is ₹{diff:,} under your ₹{requirements.budget_max_inr:,} budget.")
         else:
-            reasons.append(f"Comfortably within budget at ₹{product.price_inr:,}.")
+            reasons.append(f"Within your budget at ₹{product.price_inr:,}.")
     else:
         reasons.append(f"Competitively priced at ₹{product.price_inr:,}.")
 
     # 2. Top-scoring preference matches
     if score_breakdown.weighted_scores:
         top_pref = max(score_breakdown.weighted_scores.items(), key=lambda item: item[1])
-        pref_name = top_pref[0].replace("_", " ").title()
+        pref_name = top_pref[0].replace("_", " ")
         raw_val = score_breakdown.preference_scores.get(top_pref[0], 0.0)
-        reasons.append(f"Excellent {pref_name} rating ({raw_val:.0f}/100).")
+        # Name the criterion and its scale explicitly so the sub-score is not
+        # confused with the customer rating or the overall match score.
+        reasons.append(
+            f"Scores {raw_val:.0f}/100 on {pref_name}, your highest-weighted priority."
+        )
 
     # 3. Customer rating highlight
     if product.rating is not None and product.rating >= 4.0:
-        reasons.append(f"Strong customer satisfaction with a {product.rating}/5.0 review score.")
+        reasons.append(f"Rated {product.rating}/5 by customers.")
 
     # 4. Use case persona match
     if requirements.use_cases:

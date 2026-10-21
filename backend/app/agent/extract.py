@@ -15,11 +15,46 @@ from app.models.requirements import HardConstraints, Message, Requirements, Requ
 
 MAX_MESSAGE_LENGTH = 1000
 
+NUMBER_WORDS = {
+    "one": 1, "two": 2, "three": 3, "four": 4, "five": 5,
+    "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10,
+}
+_NUM = r"(\d+|one|two|three|four|five|six|seven|eight|nine|ten)"
+_RESULT_NOUNS = (
+    r"(?:options?|recommendations?|products?|choices?|picks?|models?|suggestions?|"
+    r"laptops?|notebooks?|phones?|smartphones?|mobiles?|headphones?|earbuds?|"
+    r"tablets?|monitors?|displays?)"
+)
+_RESULT_NOUNS_PLURAL = (
+    r"(?:options|recommendations|products|choices|picks|models|suggestions|"
+    r"laptops|notebooks|phones|smartphones|mobiles|headphones|earbuds|"
+    r"tablets|monitors|displays)"
+)
+
+# Previously digits only, so "top two monitors" (the exact phrasing from the
+# failing test) was not recognised and the pipeline fell back to 5 results.
+# Three forms, ordered from most to least explicit:
+#   1. "top 2", "best three laptops", "top-2"           (noun optional)
+#   2. "show me 2 options", "recommend two laptops"     (noun required)
+#   3. "2 options", "three monitors"                    (plural noun required,
+#      so "one laptop for college" is not read as a result count)
 RE_RESULT_COUNT = re.compile(
-    r"\b(?:top|give\s+me(?:\s+my)?|show\s+me(?:\s+the)?|best)\s+(\d+)\s*(?:options|recommendations|products|choices|picks|models)?\b|"
-    r"\b(\d+)\s+(?:options|recommendations|products|choices|picks|models)\b",
+    rf"\b(?:top|best)[\s-]+{_NUM}\b(?!\s*(?:gb|tb|hz|inch|in\b|k\b|mp\b))|"
+    rf"\b(?:give\s+me|show\s+me|recommend|suggest|list|only|just)\s+(?:me\s+)?(?:the\s+)?(?:top\s+|best\s+)?"
+    rf"{_NUM}\s+(?:best\s+|good\s+|different\s+)?{_RESULT_NOUNS}\b|"
+    rf"\b{_NUM}\s+(?:best\s+|good\s+|different\s+)?{_RESULT_NOUNS_PLURAL}\b",
     re.IGNORECASE,
 )
+
+
+def _parse_count(token: str | None) -> int | None:
+    """Convert a digit string or number word into an int, or None."""
+    if not token:
+        return None
+    token = token.strip().lower()
+    if token.isdigit():
+        return int(token)
+    return NUMBER_WORDS.get(token)
 
 RE_VERIFIED_ONLY = re.compile(
     r"\bonly\s+recommend\s+(?:products\s+if|if)|must\s+be\s+verified\b",
@@ -34,15 +69,16 @@ def _apply_deterministic_fallbacks(message: str, delta: RequirementsDelta) -> Re
 
     # 1. Deterministic requested result count
     if updated.requested_result_count is None:
-        count_match = RE_RESULT_COUNT.search(message)
-        if count_match:
-            val_str = count_match.group(1) or count_match.group(2)
-            try:
-                cnt = int(val_str)
-                if 1 <= cnt <= 20:
-                    updated.requested_result_count = cnt
-            except (ValueError, TypeError):
-                pass
+        for count_match in RE_RESULT_COUNT.finditer(message):
+            # "I have 2 monitors already" describes ownership, not a result count.
+            preceding = message[max(0, count_match.start() - 20):count_match.start()].lower()
+            if re.search(r"\b(?:have|has|own|owned|got|bought|already)\s*$", preceding):
+                continue
+            token = next((g for g in count_match.groups() if g), None)
+            cnt = _parse_count(token)
+            if cnt is not None and 1 <= cnt <= 20:
+                updated.requested_result_count = cnt
+                break
 
     # 2. Strict screen size vs soft preference for monitors
     if "only show" in msg_lower and re.search(r"(\d+(?:\.\d+)?)[-\s]*(?:inch|in|\")\s*monitors?", msg_lower):
@@ -60,7 +96,13 @@ def _apply_deterministic_fallbacks(message: str, delta: RequirementsDelta) -> Re
 
     # 3. Soft screen size preference (e.g. "I want a 24-inch display")
     if updated.hard is None or updated.hard.screen_size_in is None:
-        m_soft = re.search(r"(?:want|prefer|look(?:ing)?\s+for)\s+(?:a\s+)?(\d+(?:\.\d+)?)[-\s]*(?:inch|in|\")\s*(?:display|screen|monitor)?", msg_lower)
+        # Allow up to three adjectives before the size: "prefer a sharp 24-inch display"
+        # previously failed this rule, leaving the size preference to the LLM alone.
+        m_soft = re.search(
+            r"(?:want|prefer|like|look(?:ing)?\s+for)\s+(?:an?\s+)?(?:[a-z]+\s+){0,3}?"
+            r"(\d+(?:\.\d+)?)[-\s]*(?:inch(?:es)?|in\b|\")",
+            msg_lower,
+        )
         if m_soft:
             target_sz = float(m_soft.group(1))
             if updated.hard is None:
@@ -71,6 +113,19 @@ def _apply_deterministic_fallbacks(message: str, delta: RequirementsDelta) -> Re
                 updated.preferences = {}
             if "screen_size" not in updated.preferences:
                 updated.preferences["screen_size"] = 0.85
+
+    # 3b. Explicitly unwanted refresh rate ("don't need a high refresh rate").
+    # Ensures the negation is never stored as a positive refresh_rate preference.
+    if re.search(
+        r"(?:don'?t|do\s+not|doesn'?t|no)\s+(?:really\s+)?(?:need|want|care\s+about|require)\s+"
+        r"(?:a\s+|an\s+|for\s+)?(?:high\s+|fast\s+)?(?:refresh|hz\b|\d+\s*hz)"
+        r"|no\s+need\s+for\s+(?:a\s+)?(?:high\s+)?refresh",
+        msg_lower,
+    ):
+        if updated.preferences and "refresh_rate" in updated.preferences:
+            updated.preferences = {k: v for k, v in updated.preferences.items() if k != "refresh_rate"}
+        if "refresh_rate" not in updated.removed_fields:
+            updated.removed_fields = [*updated.removed_fields, "refresh_rate"]
 
     # 4. Mandatory verification requirements ("only recommend products if that feature is verified")
     if RE_VERIFIED_ONLY.search(msg_lower):

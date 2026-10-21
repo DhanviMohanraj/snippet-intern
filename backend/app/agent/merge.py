@@ -71,6 +71,34 @@ HARD_CONSTRAINT_REMOVAL_MAP = {
 }
 
 
+# A user withdrawing a feature ("I no longer need ANC") means both its hard
+# constraint and its soft preference should go. RequirementsDelta's alias map
+# rewrites each removal to only ONE of the two (e.g. "anc" -> noise_cancellation,
+# "refresh_rate" -> min_refresh_hz), so the other half used to survive the merge.
+PAIRED_REMOVALS: dict[str, set[str]] = {
+    "noise_cancellation": {"requires_anc"},
+    "requires_anc": {"noise_cancellation"},
+    "min_refresh_hz": {"refresh_rate"},
+    "refresh_rate": {"min_refresh_hz"},
+    "screen_size_in": {"screen_size", "target_screen_in"},
+    "target_screen_in": {"screen_size"},
+    "screen_size": {"screen_size_in", "target_screen_in"},
+    "requires_eye_comfort": {"eye_comfort"},
+    "eye_comfort": {"requires_eye_comfort"},
+    "requires_flicker_free": {"flicker_free"},
+    "flicker_free": {"requires_flicker_free"},
+    "requires_stylus": {"stylus"},
+}
+
+
+def _expand_removals(removed: set[str]) -> set[str]:
+    """Add the paired hard-constraint / preference key for every removed field."""
+    expanded = set(removed)
+    for key in removed:
+        expanded |= PAIRED_REMOVALS.get(key, set())
+    return expanded
+
+
 def detect_contradictions(req: Requirements) -> list[Contradiction]:
     """Deterministically detect logical contradictions and incompatible states in Requirements.
 
@@ -242,7 +270,7 @@ def merge(
         return current.model_copy(deep=True), []
 
     # Prepare safe set of normalized removal keys
-    removed_set = {r.strip().lower() for r in delta.removed_fields}
+    removed_set = _expand_removals({r.strip().lower() for r in delta.removed_fields})
 
     # 1. Category merging
     if "category" in removed_set:
