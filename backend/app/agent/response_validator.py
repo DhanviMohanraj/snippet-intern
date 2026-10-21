@@ -17,7 +17,7 @@ import re
 from typing import Any, Sequence
 
 from app.core.logging import get_logger
-from app.models.product import Category, Product
+from app.models.product import CATEGORY_SPEC_SCHEMA, Category, Product
 from app.models.ranking import CandidateSearchResult, RankedCandidate
 from app.models.requirements import Requirements
 from app.models.response import (
@@ -163,6 +163,241 @@ def _build_comparison_summary(
 # 1. Deterministic Fallback Synthesis
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# Explanation-quality helpers
+# ---------------------------------------------------------------------------
+
+_DATA_GAP_RE = re.compile(
+    r"^\s*(?:no\s+(?:information|info|details?|data|mention)|unknown|unverified|not\s+(?:specified|listed|verified|known|available|mentioned)|"
+    r"lacks?\s+(?:information|details?|data)|missing|catalogue\s+(?:does\s+not|doesn't)|information\s+(?:on|about)\s+.+\s+(?:is\s+)?(?:unavailable|missing))",
+    re.IGNORECASE,
+)
+
+_NOTE_FILLER_RE = re.compile(
+    r"\b(?:unknown|unverified|not|verified|in|the|catalogue|catalog|specifications?|specs?|is|are|status|presence|"
+    r"information|info|details?|on|about|no|of|for|this|model|data|available|listed|missing)\b"
+)
+
+_CONSTRAINT_LABELS: dict[str, tuple[str, str]] = {
+    # name -> (how to describe the requirement, unit for the product's actual value)
+    "budget_max": ("budget of ₹{req:,}", "₹{act:,}"),
+    "min_storage_gb": ("minimum storage of {req} GB", "{act} GB"),
+    "min_ram_gb": ("minimum RAM of {req} GB", "{act} GB RAM"),
+    "min_battery_hr": ("minimum battery life of {req} hours", "{act} hrs"),
+    "max_weight_kg": ("maximum weight of {req} kg", "{act}"),
+    "min_vram_gb": ("minimum VRAM of {req} GB", "{act} GB VRAM"),
+    "min_refresh_hz": ("minimum refresh rate of {req} Hz", "{act} Hz"),
+    "screen_size_in": ("{req}-inch screen size requirement", "{act}\""),
+    "requires_gpu": ("dedicated GPU requirement", "{act}"),
+    "requires_anc": ("ANC requirement", "{act}"),
+    "requires_stylus": ("stylus requirement", "{act}"),
+    "requires_wireless": ("wireless requirement", "{act}"),
+    "form_factor": ("{req} form factor requirement", "{act}"),
+    "requires_eye_comfort": ("eye-comfort requirement", "{act}"),
+    "requires_flicker_free": ("flicker-free requirement", "{act}"),
+    "exclude_brands": ("brand exclusions", "{act}"),
+}
+
+
+def _append_note(message: str, note: str) -> str:
+    """Append a sentence to a message, turning a trailing colon into a full stop."""
+    base = message.rstrip()
+    if base.endswith(":"):
+        base = base[:-1].rstrip() + "."
+    elif base and base[-1] not in ".!?":
+        base += "."
+    return f"{base} {note}"
+
+
+def _is_data_gap(text: str) -> bool:
+    """True for statements that only say information is missing (not real trade-offs)."""
+    return bool(_DATA_GAP_RE.search(text))
+
+
+def _note_key(text: str) -> str:
+    """Normalise a note so 'Camera sensor type' and 'Camera sensor type unknown' compare equal."""
+    words = _NOTE_FILLER_RE.sub(" ", text.lower().replace("-", " "))
+    return " ".join(re.findall(r"[a-z0-9]+", words))
+
+
+def _dedupe_notes(notes: Sequence[str]) -> list[str]:
+    """Remove empty and near-duplicate notes.
+
+    A note is dropped when its meaningful words are all contained in another note,
+    so "Camera sensor type" and "Camera sensor type unknown" collapse into one,
+    and the more descriptive wording is kept.
+    """
+    cleaned: list[tuple[str, frozenset[str]]] = []
+    for note in notes:
+        note = note.strip()
+        if not note:
+            continue
+        words = frozenset(_note_key(note).split()) or frozenset({note.lower()})
+        cleaned.append((note, words))
+
+    def covered(idx: int) -> bool:
+        note, words = cleaned[idx]
+        for j, (other_note, other_words) in enumerate(cleaned):
+            if j == idx:
+                continue
+            if words < other_words:
+                return True  # strictly contained in a broader note
+            if words == other_words and (len(other_note) > len(note) or (len(other_note) == len(note) and j < idx)):
+                return True  # same meaning: keep the longer (or first) wording
+        return False
+
+    kept = [cleaned[i] for i in range(len(cleaned)) if not covered(i)]
+    return [n for n, _ in kept]
+
+
+def _requirement_terms(requirements: Requirements) -> set[str]:
+    """Words describing what the user actually asked about."""
+    terms: set[str] = set()
+    sources = list(requirements.use_cases) + list(requirements.preferences.keys())
+    hard = requirements.hard.model_dump(exclude_none=True)
+    sources += [k for k, v in hard.items() if v not in (False, [], "")]
+    for src in sources:
+        for w in re.findall(r"[a-z]+", src.lower().replace("_", " ")):
+            if len(w) > 3 and w not in {"requires", "verified", "features", "quality", "target", "price"}:
+                terms.add(w.rstrip("s"))
+    # Map common use cases to the attributes they depend on.
+    synonyms = {
+        "photography": {"camera", "sensor", "lens", "zoom", "photo"},
+        "gaming": {"refresh", "gpu", "graphic", "cooling", "thermal"},
+        "programming": {"keyboard", "display", "ram"},
+        "music": {"codec", "driver", "sound", "audio"},
+        "call": {"mic", "microphone"},
+    }
+    for key, extra in synonyms.items():
+        if any(key in t for t in terms):
+            terms |= extra
+    return terms
+
+
+def _missing_spec_terms(product: Product) -> set[str]:
+    """Words for schema fields this product's catalogue record genuinely lacks."""
+    missing = CATEGORY_SPEC_SCHEMA.get(product.category, set()) - set(product.specs.keys())
+    return {
+        w for field in missing
+        for w in field.lower().split("_") if len(w) > 3
+    }
+
+
+def _is_relevant_note(note: str, terms: set[str]) -> bool:
+    """Keep an LLM-written uncertainty only if it concerns something the user asked about."""
+    low = note.lower()
+    return any(t in low for t in terms)
+
+
+def _narrow_match_note(search_result: CandidateSearchResult, requirements: Requirements) -> str | None:
+    """Explain a thin result set: how many products fit and which single requirement to relax.
+
+    Only products that fail exactly one requirement (and are not merely out of
+    stock) are counted, so every suggestion is genuinely one change away.
+    """
+    n_match = len(search_result.ranked_candidates)
+    total = search_result.total_retrieved
+    requested = requirements.requested_result_count
+    if n_match == 0 or total <= n_match or n_match > max(2, (requested or 0) - 1):
+        return None
+
+    by_constraint: dict[str, list[tuple[Product, Any, Any]]] = {}
+    for ev in search_result.excluded_candidates:
+        if ev.unverifiable_constraints or len(ev.failed_constraints) != 1:
+            continue
+        chk = ev.failed_constraints[0]
+        if chk.name in ("in_stock", "category"):
+            continue
+        by_constraint.setdefault(chk.name, []).append((ev.product, chk.required, chk.actual))
+
+    cat = requirements.category.value if requirements.category else "product"
+    plural = cat if cat.endswith("s") else f"{cat}s"
+    lead = (
+        f"Only {n_match} of the {total} {plural} in our catalogue "
+        f"{'meets' if n_match == 1 else 'meet'} all your requirements."
+    )
+    if not by_constraint:
+        return lead
+
+    name, entries = max(by_constraint.items(), key=lambda kv: (len(kv[1]), kv[0]))
+    label_tpl, unit_tpl = _CONSTRAINT_LABELS.get(name, (name.replace("_", " "), "{act}"))
+    required = entries[0][1]
+    try:
+        label = label_tpl.format(req=required)
+    except (ValueError, TypeError):
+        label = name.replace("_", " ")
+
+    wanted = {u.lower() for u in requirements.use_cases}
+
+    def sort_key(item: tuple[Product, Any, Any]) -> tuple:
+        prod, _req, act = item
+        overlap = sum(1 for u in prod.intended_use if u.lower() in wanted)
+        # For a minimum (storage, RAM, battery...), the nearest options are the
+        # ones with the highest actual value, i.e. the smallest relaxation.
+        closeness = -float(act) if name.startswith("min_") and isinstance(act, (int, float)) else 0.0
+        return (-overlap, closeness, -(prod.rating or 0), prod.price_inr)
+
+    examples = []
+    for prod, _req, act in sorted(entries, key=sort_key)[:2]:
+        try:
+            act_txt = unit_tpl.format(act=act) if act is not None else ""
+        except (ValueError, TypeError):
+            act_txt = str(act)
+        detail = f"₹{prod.price_inr:,}" + (f", {act_txt}" if act_txt and name != "budget_max" else "")
+        examples.append(f"{prod.name} ({detail})")
+
+    more = len(entries)
+    return (
+        f"{lead} Relaxing your {label} would add {more} more "
+        f"{'option' if more == 1 else 'options'}, such as {' and '.join(examples)}."
+    )
+
+
+def _deterministic_trade_offs(p: Product, requirements: Requirements) -> list[str]:
+    """Real trade-offs derived from catalogue specs (never data gaps or filler)."""
+    trade_offs: list[str] = []
+    if p.category == Category.LAPTOP:
+        vram = p.specs.get("vram_gb", 0)
+        gpu = p.specs.get("gpu", "")
+        if vram == 0:
+            trade_offs.append(f"Uses integrated graphics ({gpu}); not suited for intensive AAA gaming or local 3D rendering.")
+        w = p.specs.get("weight_kg")
+        if w is not None and w >= 2.0:
+            trade_offs.append(f"At {w}kg, this laptop is heavier than ultrabooks.")
+        b = p.specs.get("battery_hr")
+        if b is not None and b < 8.0:
+            trade_offs.append(f"Battery runtime of {b} hours may require keeping the charger nearby.")
+
+    elif p.category == Category.HEADPHONES:
+        anc = p.specs.get("anc")
+        if anc is False:
+            trade_offs.append("Features passive noise isolation only; does not include Active Noise Cancellation (ANC).")
+
+    elif p.category == Category.PHONE:
+        w_g = p.specs.get("weight_g")
+        if w_g is not None and w_g >= 210:
+            trade_offs.append(f"Device weight of {w_g}g is on the heavier side for single-handed use.")
+
+    elif p.category == Category.MONITOR:
+        hz = p.specs.get("refresh_hz", 60)
+        if hz <= 75 and any("gaming" in u.lower() for u in requirements.use_cases):
+            trade_offs.append(f"Refresh rate of {hz}Hz is adequate for office and casual gaming, but not high-frame-rate competitive esports.")
+
+    # Catalogue says the product targets different uses than the user asked for.
+    if requirements.use_cases and p.intended_use:
+        intended = {u.lower() for u in p.intended_use}
+        unmatched = [
+            u for u in requirements.use_cases
+            if not any(u.lower() in i or i in u.lower() for i in intended)
+        ]
+        if unmatched:
+            listed = " and ".join(u.replace("_", " ") for u in p.intended_use[:2])
+            wanted = " and ".join(u.replace("_", " ") for u in unmatched[:2])
+            trade_offs.append(f"The catalogue lists it for {listed} use rather than {wanted}.")
+
+    return trade_offs
+
+
 def build_fallback_product_recommendation(
     candidate: RankedCandidate,
     requirements: Requirements,
@@ -217,33 +452,7 @@ def build_fallback_product_recommendation(
                 advantages.append(feat)
 
     # 3. Build honest, verified trade-offs supported by catalogue data
-    trade_offs: list[str] = []
-    if p.category == Category.LAPTOP:
-        vram = p.specs.get("vram_gb", 0)
-        gpu = p.specs.get("gpu", "")
-        if vram == 0:
-            trade_offs.append(f"Uses integrated graphics ({gpu}); not suited for intensive AAA gaming or local 3D rendering.")
-        w = p.specs.get("weight_kg")
-        if w is not None and w >= 2.0:
-            trade_offs.append(f"At {w}kg, this laptop is heavier than ultrabooks.")
-        b = p.specs.get("battery_hr")
-        if b is not None and b < 8.0:
-            trade_offs.append(f"Battery runtime of {b} hours may require keeping the charger nearby.")
-
-    elif p.category == Category.HEADPHONES:
-        anc = p.specs.get("anc")
-        if anc is False:
-            trade_offs.append("Features passive noise isolation only; does not include Active Noise Cancellation (ANC).")
-
-    elif p.category == Category.PHONE:
-        w_g = p.specs.get("weight_g")
-        if w_g is not None and w_g >= 210:
-            trade_offs.append(f"Device weight of {w_g}g is on the heavier side for single-handed use.")
-
-    elif p.category == Category.MONITOR:
-        hz = p.specs.get("refresh_hz", 60)
-        if hz <= 75 and any("gaming" in u.lower() for u in requirements.use_cases):
-            trade_offs.append(f"Refresh rate of {hz}Hz is adequate for office and casual gaming, but not high-frame-rate competitive esports.")
+    trade_offs = _deterministic_trade_offs(p, requirements)
 
     if not trade_offs:
         # Previously a generic filler ("Priced near the upper threshold of its
@@ -357,9 +566,11 @@ def build_fallback_recommendation_response(
         f"Based on your requirements, here are the top recommended {cat_name}s from our catalogue{use_case_text}:"
     )
 
-    remaining_unc = list(dict.fromkeys(
-        lim for rec in recommendations for lim in rec.limitations
-    ))
+    narrow_note = _narrow_match_note(search_result, requirements)
+    if narrow_note:
+        intro_message = _append_note(intro_message, narrow_note)
+
+    remaining_unc = _dedupe_notes([lim for rec in recommendations for lim in rec.limitations])
 
     return RecommendationResponse(
         message=intro_message,
@@ -534,6 +745,24 @@ def check_claim_contradictions(
                 contradictions.append(
                     f"Contradictory weight claim: text mentions {wg}g, but catalogue specifies {cat_g}g."
                 )
+
+    # 5d. Subjective "lightweight" claims must agree with the recorded weight.
+    # e.g. a 215 g phone was described as "215 g lightweight", while the fallback
+    # itself treats >= 210 g as heavy for single-handed use.
+    light_terms = (" lightweight", " light weight", " ultra light", " ultralight", " featherweight", " feather light", " very light")
+    if any(term in claims for term in light_terms):
+        heavy_reason = None
+        if product.category == Category.LAPTOP and cat_kg is not None and float(cat_kg) >= 1.8:
+            heavy_reason = f"{cat_kg} kg"
+        elif cat_g is not None:
+            limits = {Category.PHONE: 200, Category.TABLET: 550, Category.HEADPHONES: 300}
+            limit = limits.get(product.category)
+            if limit is not None and float(cat_g) >= limit:
+                heavy_reason = f"{cat_g} g"
+        if heavy_reason:
+            contradictions.append(
+                f"Contradictory weight claim: text calls it lightweight, but the catalogue weight is {heavy_reason}."
+            )
 
     # 6. Fabricated monitor weight
     if product.category == Category.MONITOR:
@@ -758,9 +987,29 @@ def validate_recommendation_response(
                 # Merge validated explanation with authoritative catalogue product record
                 # Ensure all unverified limitations are preserved
                 unverified_lims = _collect_unverified_limitations(cand.product, requirements, cand)
-                merged_limitations = list(dict.fromkeys(
-                    [lim.strip() for lim in exp.limitations if lim.strip()] + unverified_lims
-                ))
+
+                # Trade-offs must be real downsides. "No information on X" is a data
+                # gap, not a trade-off, so it moves to limitations instead.
+                llm_trade_offs = [t.strip() for t in exp.trade_offs if t.strip()]
+                real_trade_offs = [t for t in llm_trade_offs if not _is_data_gap(t)]
+                gap_notes = [t for t in llm_trade_offs if _is_data_gap(t)]
+                llm_text = " ".join(real_trade_offs).lower()
+                for t in _deterministic_trade_offs(cand.product, requirements):
+                    numbers = re.findall(r"\d+(?:\.\d+)?", t)
+                    if not (numbers and any(n in llm_text for n in numbers)):
+                        real_trade_offs.append(t)
+                if not real_trade_offs:
+                    real_trade_offs = ["No notable trade-offs identified from the catalogue specifications."]
+
+                # Only surface LLM-written gaps that concern what the user asked about
+                # (e.g. camera sensor for a photography request), not generic lists
+                # like 5G or headphone jack that the catalogue never tracks.
+                terms = _requirement_terms(requirements) | _missing_spec_terms(cand.product)
+                llm_lims = [
+                    lim for lim in [*exp.limitations, *gap_notes]
+                    if lim.strip() and _is_relevant_note(lim, terms)
+                ]
+                merged_limitations = _dedupe_notes(unverified_lims + llm_lims)
 
                 recommendations.append(
                     ProductRecommendation(
@@ -775,7 +1024,7 @@ def validate_recommendation_response(
                         overall_score=cand.overall_score,
                         reasoning=exp.reasoning.strip(),
                         advantages=[a.strip() for a in exp.advantages if a.strip()],
-                        trade_offs=[t.strip() for t in exp.trade_offs if t.strip()],
+                        trade_offs=real_trade_offs[:4],
                         match_explanation=exp.match_explanation.strip() or f"Priced at ₹{cand.product.price_inr:,}, matching your {cand.product.category.value} criteria.",
                         limitations=merged_limitations,
                     )
@@ -795,9 +1044,15 @@ def validate_recommendation_response(
         f"Based on your requirements, here are the top recommended {requirements.category.value if requirements.category else 'electronics'}s from our catalogue:"
     )
 
-    remaining_unc = list(dict.fromkeys(
-        (payload.remaining_uncertainties or []) + [lim for r in recommendations for lim in r.limitations]
-    ))
+    narrow_note = _narrow_match_note(search_result, requirements)
+    if narrow_note:
+        msg = _append_note(msg, narrow_note)
+
+    terms = _requirement_terms(requirements)
+    remaining_unc = _dedupe_notes(
+        [lim for r in recommendations for lim in r.limitations]
+        + [u for u in (payload.remaining_uncertainties or []) if _is_relevant_note(u, terms)]
+    )
 
     comparison_summary = payload.comparison_summary.strip() if payload.comparison_summary else _build_comparison_summary(recommendations, requirements)
 

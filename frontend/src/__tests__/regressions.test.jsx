@@ -52,3 +52,13 @@ describe('Regression: error report 21 Oct 2026', () => {
     expect(screen.getByText('Display resolution is not verified in the catalogue.')).toBeTruthy();
   });
 });
+
+describe('Regression: phone spec labels (21 Oct 2026)', () => {
+  it('formats camera and OS specs with proper labels', async () => {
+    const { getSpecLabel, formatSpecValue } = await import('../utils/specFormatter.js');
+    expect(getSpecLabel('camera_mp')).toBe('Camera');
+    expect(formatSpecValue('camera_mp', 108)).toBe('108 MP');
+    expect(getSpecLabel('os')).toBe('OS');
+    expect(getSpecLabel('chipset')).toBe('Chipset');
+  });
+});

@@ -9,13 +9,15 @@ import pytest
 
 from app.agent.extract import _apply_deterministic_fallbacks
 from app.agent.merge import merge
-from app.agent.ranking import rank_candidates, score_candidate
+from app.agent.ranking import evaluate_candidate, rank_candidates, score_candidate, search_and_rank
 from app.agent.response_validator import (
     build_fallback_product_recommendation,
     check_claim_contradictions,
+    validate_recommendation_response,
 )
 from app.models.product import Category, Product
 from app.models.requirements import HardConstraints, Requirements, RequirementsDelta
+from app.models.response import LLMProductExplanation, LLMRecommendationPayload
 
 
 def _monitor(pid: str, name: str, price: int, size: float, hz: int, features: list[str], rating: float = 4.2) -> Product:
@@ -234,3 +236,83 @@ def test_grounding_evidence_never_contradicts_live_record():
         if e.document.source_field.startswith("specs."):
             key = e.document.source_field.split(".", 1)[1]
             assert str(live.specs[key]) in e.document.content
+
+
+# --- Phone scenario follow-up (21 Oct): explanation quality --------------------------
+
+
+
+def _phone(pid: str, name: str, price: int, storage: int, weight_g: int, uses: list[str], in_stock: bool = True, mp: float = 64.0) -> Product:
+    return Product(
+        product_id=pid, name=name, brand=name.split()[0], category=Category.PHONE, price_inr=price, rating=4.3,
+        specs={"chipset": "Snapdragon 7s Gen 2", "ram_gb": 8, "storage_gb": storage, "camera_mp": mp,
+               "battery_mah": 5000, "screen_in": 6.6, "weight_g": weight_g, "os": "Android 14"},
+        features=["Dual SIM"], intended_use=uses, in_stock=in_stock,
+    )
+
+
+_PHONES = [
+    _phone("PHN-A", "Titan WorkMobile 10", 41999, 512, 215, ["productivity", "general"], mp=108.0),
+    _phone("PHN-B", "Pulse ZoomMaster 12", 48999, 256, 190, ["photography", "gaming"]),
+    _phone("PHN-C", "Lumina Clarity 10", 35999, 256, 186, ["photography", "general"]),
+    _phone("PHN-D", "Nexa Note Max", 26999, 256, 199, ["photography"], in_stock=False, mp=200.0),
+    _phone("PHN-E", "Nova Trigger Red 9", 65999, 512, 229, ["gaming"]),
+]
+_PHONE_REQ = Requirements(
+    category=Category.PHONE, budget_max_inr=50000, use_cases=["photography"],
+    preferences={"camera_quality": 0.9}, hard=HardConstraints(min_storage_gb=512),
+)
+
+
+def test_out_of_stock_products_are_never_recommended_by_default():
+    req = Requirements(category=Category.PHONE, budget_max_inr=50000)
+    assert evaluate_candidate(_PHONES[3], req).is_eligible is False
+    allow = Requirements(category=Category.PHONE, budget_max_inr=50000, hard=HardConstraints(in_stock=False))
+    assert evaluate_candidate(_PHONES[3], allow).is_eligible is True
+
+
+def _phone_response(explanation: LLMProductExplanation, uncertainties: list[str] | None = None):
+    import asyncio
+    sr = asyncio.run(search_and_rank(_PHONE_REQ, _PHONES))
+    payload = LLMRecommendationPayload(
+        message="Here are the tailored explanations for the phone that meets your criteria.",
+        explanations=[explanation], remaining_uncertainties=uncertainties or [],
+    )
+    return validate_recommendation_response(payload, sr, _PHONE_REQ)
+
+
+def test_single_match_explains_binding_constraint_and_relaxation():
+    resp = _phone_response(LLMProductExplanation(
+        product_id="PHN-A", reasoning="Offers a 108 MP camera.", advantages=["108 MP camera"],
+        trade_offs=[], match_explanation="Meets storage.", limitations=[],
+    ))
+    assert "Only 1 of the 5 phones" in resp.message
+    assert "minimum storage of 512 GB" in resp.message
+    assert "Pulse ZoomMaster 12" in resp.message
+    assert "Nexa Note Max" not in resp.message  # out of stock is not a relaxation option
+
+
+def test_lightweight_claim_on_heavy_phone_is_rejected():
+    issues = check_claim_contradictions("215 g lightweight design", _PHONES[0], _PHONE_REQ)
+    assert any("lightweight" in c for c in issues)
+    assert check_claim_contradictions("A lightweight design.", _PHONES[2], _PHONE_REQ) == []
+
+
+def test_data_gaps_are_not_trade_offs_and_irrelevant_uncertainties_dropped():
+    resp = _phone_response(
+        LLMProductExplanation(
+            product_id="PHN-A", reasoning="Offers a 108 MP camera.", advantages=["108 MP camera"],
+            trade_offs=["No information on camera sensor type or video recording capabilities",
+                        "No details on 5G or headphone jack"],
+            match_explanation="Meets storage.",
+            limitations=["Camera sensor type unknown", "5G connectivity status unknown", "Headphone jack presence unknown"],
+        ),
+        uncertainties=["Camera sensor type", "Durability and build quality unknown"],
+    )
+    rec = resp.recommendations[0]
+    assert not any(t.lower().startswith("no information") or t.lower().startswith("no details") for t in rec.trade_offs)
+    assert any("215" in t for t in rec.trade_offs)
+    assert any("productivity" in t for t in rec.trade_offs)
+    all_notes = " ".join(rec.limitations + resp.remaining_uncertainties).lower()
+    assert "5g" not in all_notes and "headphone jack" not in all_notes and "durability" not in all_notes
+    assert sum("camera sensor" in u.lower() for u in resp.remaining_uncertainties) == 1

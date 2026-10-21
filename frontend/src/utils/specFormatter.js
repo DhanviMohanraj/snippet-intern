@@ -26,6 +26,15 @@ export const SPEC_LABEL_MAP = {
   water_resistance: 'Water resistance',
   driver_mm: 'Driver size',
   connectivity: 'Connectivity',
+  // Phone / tablet / headphone keys that previously fell through to the
+  // generic title-caser and rendered as "Camera Mp" and "Os".
+  camera_mp: 'Camera',
+  chipset: 'Chipset',
+  os: 'OS',
+  type: 'Type',
+  codec: 'Codec',
+  wireless: 'Wireless',
+  size: 'Size',
 };
 
 export function getSpecLabel(key) {
@@ -75,6 +84,11 @@ export function formatSpecValue(key, val) {
     case 'battery_hr': {
       if (strVal.toLowerCase().includes('hr') || strVal.toLowerCase().includes('hour')) return strVal;
       return `${strVal} hrs`;
+    }
+    case 'camera_mp': {
+      if (strVal.toLowerCase().endsWith('mp')) return strVal;
+      const mp = Number(strVal);
+      return `${!isNaN(mp) && Number.isInteger(mp) ? mp : strVal} MP`;
     }
     case 'battery_mah': {
       if (strVal.toLowerCase().endsWith('mah')) return strVal;

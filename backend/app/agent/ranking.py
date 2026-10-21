@@ -179,29 +179,33 @@ def evaluate_candidate(product: Product, requirements: Requirements) -> Candidat
                 )
             )
 
-    # 5. In-Stock requirement check
-    if requirements.hard.in_stock is not None:
-        if requirements.hard.in_stock is True:
-            if product.in_stock is True:
-                passed.append(
-                    ConstraintCheck(
-                        name="in_stock",
-                        status=ConstraintStatus.PASS,
-                        required=True,
-                        actual=product.in_stock,
-                        reason="Product is confirmed in stock.",
-                    )
-                )
-            else:
-                chk = ConstraintCheck(
+    # 5. In-Stock requirement check.
+    # Stock is enforced unless the user explicitly allows out-of-stock items
+    # (in_stock=False). Previously it was only checked when the user asked for
+    # it, and retrieval filters by category only, so out-of-stock products could
+    # be recommended as purchasable.
+    require_in_stock = requirements.hard.in_stock is not False
+    if require_in_stock:
+        if product.in_stock is True:
+            passed.append(
+                ConstraintCheck(
                     name="in_stock",
-                    status=ConstraintStatus.FAIL,
+                    status=ConstraintStatus.PASS,
                     required=True,
                     actual=product.in_stock,
-                    reason="Product is currently out of stock.",
+                    reason="Product is confirmed in stock.",
                 )
-                failed.append(chk)
-                rejection_reasons.append(chk.reason)
+            )
+        else:
+            chk = ConstraintCheck(
+                name="in_stock",
+                status=ConstraintStatus.FAIL,
+                required=True,
+                actual=product.in_stock,
+                reason="Product is currently out of stock.",
+            )
+            failed.append(chk)
+            rejection_reasons.append(chk.reason)
 
     # 6. Minimum RAM requirement check
     if requirements.hard.min_ram_gb is not None:
@@ -1144,7 +1148,8 @@ def _score_camera_quality(product: Product) -> tuple[float, str, bool]:
         if mp is not None:
             # 12MP -> 55, 48MP -> 75, 108MP -> 90, 200MP -> 100
             score = min(100.0, max(35.0, (mp / 100.0) * 60.0 + 40.0))
-            return round(score, 1), f"{mp}MP camera rated {score:.1f}/100.", True
+            mp_txt = f"{mp:g}"
+            return round(score, 1), f"{mp_txt} MP main camera (camera resolution score {score:.0f}/100).", True
         return 50.0, "Camera resolution specification unavailable.", True
 
     return 50.0, f"Category '{product.category.value}' does not support camera evaluation.", False
