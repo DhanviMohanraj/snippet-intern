@@ -56,6 +56,18 @@ HARD_CONSTRAINT_REMOVAL_MAP = {
     "requires_wireless": "requires_wireless",
     "anc": "requires_anc",
     "requires_anc": "requires_anc",
+    "stylus": "requires_stylus",
+    "requires_stylus": "requires_stylus",
+    "refresh_rate": "min_refresh_hz",
+    "min_refresh_hz": "min_refresh_hz",
+    "screen_size": "screen_size_in",
+    "screen_size_in": "screen_size_in",
+    "target_screen_in": "target_screen_in",
+    "eye_comfort": "requires_eye_comfort",
+    "requires_eye_comfort": "requires_eye_comfort",
+    "flicker_free": "requires_flicker_free",
+    "requires_flicker_free": "requires_flicker_free",
+    "requires_verified_features": "requires_verified_features",
 }
 
 
@@ -312,6 +324,25 @@ def merge(
                 new_hard_dict["requires_wireless"] = delta.hard.requires_wireless
             if delta.hard.requires_anc is not None:
                 new_hard_dict["requires_anc"] = delta.hard.requires_anc
+            if delta.hard.requires_stylus is not None:
+                new_hard_dict["requires_stylus"] = delta.hard.requires_stylus
+            if delta.hard.min_refresh_hz is not None:
+                new_hard_dict["min_refresh_hz"] = delta.hard.min_refresh_hz
+            if delta.hard.screen_size_in is not None:
+                new_hard_dict["screen_size_in"] = delta.hard.screen_size_in
+            if delta.hard.target_screen_in is not None:
+                new_hard_dict["target_screen_in"] = delta.hard.target_screen_in
+            if delta.hard.requires_eye_comfort is not None:
+                new_hard_dict["requires_eye_comfort"] = delta.hard.requires_eye_comfort
+            if delta.hard.requires_flicker_free is not None:
+                new_hard_dict["requires_flicker_free"] = delta.hard.requires_flicker_free
+            if delta.hard.requires_verified_features:
+                existing_feats = list(new_hard_dict.get("requires_verified_features", []))
+                for f in delta.hard.requires_verified_features:
+                    f_clean = f.strip().lower()
+                    if f_clean and f_clean not in existing_feats:
+                        existing_feats.append(f_clean)
+                new_hard_dict["requires_verified_features"] = existing_feats
 
             if delta.hard.exclude_brands:
                 existing_brands = list(new_hard_dict.get("exclude_brands", []))
@@ -349,7 +380,15 @@ def merge(
             if s_clean and s_clean not in new_asked_slots:
                 new_asked_slots.append(s_clean)
 
-    # 8. Build new Requirements object
+    # 8. Requested result count merging
+    if "requested_result_count" in removed_set or "count" in removed_set:
+        new_requested_count = None
+    elif delta.requested_result_count is not None:
+        new_requested_count = delta.requested_result_count
+    else:
+        new_requested_count = current.requested_result_count
+
+    # 9. Build new Requirements object
     merged = Requirements(
         category=new_category,
         use_cases=new_use_cases,
@@ -359,6 +398,7 @@ def merge(
         preferences=new_preferences,
         ml_mode=new_ml_mode,
         asked_slots=new_asked_slots,
+        requested_result_count=new_requested_count,
     )
 
     # 9. Deterministic contradiction detection on merged state

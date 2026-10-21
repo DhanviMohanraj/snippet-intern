@@ -66,6 +66,12 @@ class RecommendationResponse(BaseModel):
     data_quality_notes: list[str] = Field(
         default_factory=list, description="Notes on missing or unverifiable catalogue specifications"
     )
+    comparison_summary: str | None = Field(
+        default=None, description="Concise comparison of attributes across recommended products"
+    )
+    remaining_uncertainties: list[str] = Field(
+        default_factory=list, description="Requested features that could not be verified in the catalogue"
+    )
     is_fallback: bool = Field(
         default=False, description="Whether this response was generated via deterministic fallback"
     )
@@ -119,6 +125,12 @@ class LLMRecommendationPayload(BaseModel):
     message: str = Field(description="Introductory summary message")
     explanations: list[LLMProductExplanation] = Field(
         default_factory=list, description="List of product explanations"
+    )
+    comparison_summary: str | None = Field(
+        default=None, description="Concise comparison of attributes across recommended products"
+    )
+    remaining_uncertainties: list[str] = Field(
+        default_factory=list, description="Requested features that could not be verified in the catalogue"
     )
     follow_up_question: str | None = Field(
         default=None, description="Optional natural follow-up question for the user"

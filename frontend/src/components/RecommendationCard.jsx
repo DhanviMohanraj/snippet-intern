@@ -1,7 +1,8 @@
 import React from 'react';
-import { Star, CheckCircle, AlertCircle, MessageCircleQuestion, Sparkles } from 'lucide-react';
+import { Star, CheckCircle, AlertCircle, MessageCircleQuestion, Sparkles, AlertTriangle } from 'lucide-react';
+import { getSpecLabel, formatSpecValue } from '../utils/specFormatter.js';
 
-export default function RecommendationCard({ recommendation, onAskFollowUp }) {
+export default function RecommendationCard({ recommendation, rank, onAskFollowUp }) {
   if (!recommendation) return null;
 
   const {
@@ -16,6 +17,7 @@ export default function RecommendationCard({ recommendation, onAskFollowUp }) {
     reasoning = '',
     advantages = [],
     trade_offs = [],
+    limitations = [],
   } = recommendation;
 
   const formatPrice = (val) => {
@@ -26,7 +28,9 @@ export default function RecommendationCard({ recommendation, onAskFollowUp }) {
     }).format(val || 0);
   };
 
-  const scorePercentage = Math.round((overall_score > 1 ? overall_score : overall_score * 100));
+  // Backend overall_score is always on a 0-100 scale; display it as-is so the
+  // card never disagrees with the API (a score below 1 must not be multiplied).
+  const scorePercentage = Math.round(Math.max(0, Math.min(100, Number(overall_score) || 0)));
 
   const specsList = Object.entries(verified_specs).filter(
     ([k, v]) => v != null && v !== '' && !(Array.isArray(v) && v.length === 0)
@@ -36,9 +40,26 @@ export default function RecommendationCard({ recommendation, onAskFollowUp }) {
     <article className="recommendation-card" data-testid={`product-rec-${product_id}`}>
       <div className="card-top-row">
         <div className="product-brand-title">
-          <span className="product-brand-category">
-            {brand} • {category}
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+            {rank != null && (
+              <span
+                className="product-rank-badge"
+                style={{
+                  background: 'var(--accent-primary)',
+                  color: '#ffffff',
+                  fontSize: '0.72rem',
+                  fontWeight: 800,
+                  padding: '0.15rem 0.45rem',
+                  borderRadius: 'var(--radius-sm)',
+                }}
+              >
+                #{rank}
+              </span>
+            )}
+            <span className="product-brand-category">
+              {brand} • {category}
+            </span>
+          </div>
           <h4 className="product-name">{name}</h4>
         </div>
 
@@ -64,8 +85,10 @@ export default function RecommendationCard({ recommendation, onAskFollowUp }) {
         <div className="specs-pills-row">
           {specsList.map(([key, val]) => (
             <span key={key} className="spec-pill">
-              <strong>{key.replace(/_/g, ' ')}:</strong>
-              {Array.isArray(val) ? val.join(', ') : String(val)}
+              {/* Explicit space: JSX drops the line break between elements, which
+                  rendered "Processor:AMD…" and got entity-encoded when copied. */}
+              <strong>{getSpecLabel(key)}:</strong>{' '}
+              {formatSpecValue(key, val)}
             </span>
           ))}
         </div>
@@ -109,6 +132,49 @@ export default function RecommendationCard({ recommendation, onAskFollowUp }) {
         </div>
       )}
 
+      {limitations.length > 0 && (
+        <div
+          className="limitations-callout"
+          style={{
+            background: 'rgba(234, 179, 8, 0.08)',
+            border: '1px solid rgba(234, 179, 8, 0.25)',
+            borderRadius: 'var(--radius-md)',
+            padding: '0.65rem 0.85rem',
+            marginTop: '0.4rem',
+          }}
+        >
+          <span
+            style={{
+              fontSize: '0.74rem',
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              color: '#facc15',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              marginBottom: '0.3rem',
+            }}
+          >
+            <AlertTriangle size={13} /> Unverified / Missing Specifications
+          </span>
+          {limitations.map((lim, i) => (
+            <div
+              key={i}
+              style={{
+                fontSize: '0.76rem',
+                color: 'var(--text-secondary)',
+                lineHeight: 1.35,
+                display: 'flex',
+                gap: '0.35rem',
+              }}
+            >
+              <span>•</span>
+              <span>{lim}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
       {onAskFollowUp && (
         <div className="card-action-row">
           <button
@@ -125,3 +191,4 @@ export default function RecommendationCard({ recommendation, onAskFollowUp }) {
     </article>
   );
 }
+

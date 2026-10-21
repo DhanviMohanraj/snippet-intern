@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Star, MessageSquarePlus, Filter, Loader2 } from 'lucide-react';
 import { getProducts, getCategories } from '../api/products.js';
+import { getSpecLabel, formatSpecValue } from '../utils/specFormatter.js';
 
 export default function ProductBrowser({ onConsultAboutProduct }) {
   const [products, setProducts] = useState([]);
@@ -180,7 +181,7 @@ export default function ProductBrowser({ onConsultAboutProduct }) {
                   <div className="specs-pills-row" style={{ marginTop: '0.65rem' }}>
                     {Object.entries(p.specs).slice(0, 4).map(([k, v]) => (
                       <span key={k} className="spec-pill" style={{ fontSize: '0.68rem' }}>
-                        <strong>{k}:</strong> {String(v)}
+                        <strong>{getSpecLabel(k)}:</strong> {formatSpecValue(k, v)}
                       </span>
                     ))}
                   </div>

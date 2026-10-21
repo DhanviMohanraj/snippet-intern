@@ -1,16 +1,16 @@
 import React from 'react';
-import { 
-  SlidersHorizontal, 
-  CheckCircle2, 
-  Clock, 
-  AlertTriangle, 
-  DollarSign, 
-  Laptop, 
-  Smartphone, 
-  Tablet, 
-  Headphones, 
-  Monitor, 
-  Sparkles 
+import {
+  SlidersHorizontal,
+  CheckCircle2,
+  Clock,
+  AlertTriangle,
+  DollarSign,
+  Laptop,
+  Smartphone,
+  Tablet,
+  Headphones,
+  Monitor,
+  Sparkles
 } from 'lucide-react';
 
 export default function RequirementsPanel({
@@ -124,8 +124,8 @@ export default function RequirementsPanel({
             slotEntries.map(([slotKey, status]) => {
               const isAnswered = status === 'answered' || status === 'satisfied';
               return (
-                <div 
-                  key={slotKey} 
+                <div
+                  key={slotKey}
                   className={`slot-item ${isAnswered ? 'answered' : 'pending'}`}
                 >
                   <span className="slot-name">
@@ -185,7 +185,7 @@ export default function RequirementsPanel({
               if (v == null || v === '' || (Array.isArray(v) && v.length === 0)) return null;
               return (
                 <span key={k} className="spec-pill">
-                  <strong>{k.replace(/_/g, ' ')}:</strong>
+                  <strong>{k.replace(/_/g, ' ')}:</strong>{' '}
                   {typeof v === 'boolean' ? (v ? 'Yes' : 'No') : Array.isArray(v) ? v.join(', ') : String(v)}
                 </span>
               );

@@ -741,6 +741,137 @@ def evaluate_candidate(product: Product, requirements: Requirements) -> Candidat
             unverifiable.append(chk)
             rejection_reasons.append(chk.reason)
 
+    # 17. Monitor Screen Size constraint
+    if requirements.hard.screen_size_in is not None:
+        if product.category == Category.MONITOR:
+            actual_sz = product.specs.get("size_in")
+            req_sz = requirements.hard.screen_size_in
+            if actual_sz is None:
+                chk = ConstraintCheck(
+                    name="screen_size_in",
+                    status=ConstraintStatus.UNKNOWN,
+                    required=req_sz,
+                    actual=None,
+                    reason="Monitor record lacks 'size_in' specification; cannot verify screen size.",
+                )
+                unverifiable.append(chk)
+                rejection_reasons.append(chk.reason)
+            elif abs(actual_sz - req_sz) <= 0.6:  # 23.8" to 24.5" match 24" class
+                passed.append(
+                    ConstraintCheck(
+                        name="screen_size_in",
+                        status=ConstraintStatus.PASS,
+                        required=req_sz,
+                        actual=actual_sz,
+                        reason=f"Screen size {actual_sz}\" matches required {req_sz}\" monitor class.",
+                    )
+                )
+            else:
+                chk = ConstraintCheck(
+                    name="screen_size_in",
+                    status=ConstraintStatus.FAIL,
+                    required=req_sz,
+                    actual=actual_sz,
+                    reason=f"Screen size {actual_sz}\" does not match required {req_sz}\" monitor class.",
+                )
+                failed.append(chk)
+                rejection_reasons.append(chk.reason)
+        else:
+            chk = ConstraintCheck(
+                name="screen_size_in",
+                status=ConstraintStatus.UNKNOWN,
+                required=requirements.hard.screen_size_in,
+                actual=None,
+                reason=f"Category '{product.category.value}' does not track monitor screen size constraints.",
+            )
+            unverifiable.append(chk)
+            rejection_reasons.append(chk.reason)
+
+    # 18. Eye-Comfort Certification requirement
+    if requirements.hard.requires_eye_comfort is True:
+        feat_str = " ".join(product.features).lower()
+        if any(kw in feat_str for kw in ("low blue light", "eye-care", "eye comfort", "tuv")):
+            passed.append(
+                ConstraintCheck(
+                    name="requires_eye_comfort",
+                    status=ConstraintStatus.PASS,
+                    required=True,
+                    actual=True,
+                    reason="Eye-comfort / low-blue-light certification verified in catalogue.",
+                )
+            )
+        else:
+            chk = ConstraintCheck(
+                name="requires_eye_comfort",
+                status=ConstraintStatus.FAIL,
+                required=True,
+                actual=False,
+                reason="Eye-comfort certification required, but not verified in catalogue.",
+            )
+            failed.append(chk)
+            rejection_reasons.append(chk.reason)
+
+    # 19. Flicker-Free operation requirement
+    if requirements.hard.requires_flicker_free is True:
+        feat_str = " ".join(product.features).lower()
+        if any(kw in feat_str for kw in ("flicker-free", "anti-flicker", "flicker free")):
+            passed.append(
+                ConstraintCheck(
+                    name="requires_flicker_free",
+                    status=ConstraintStatus.PASS,
+                    required=True,
+                    actual=True,
+                    reason="Flicker-free operation verified in catalogue.",
+                )
+            )
+        else:
+            chk = ConstraintCheck(
+                name="requires_flicker_free",
+                status=ConstraintStatus.FAIL,
+                required=True,
+                actual=False,
+                reason="Flicker-free operation required, but not verified in catalogue.",
+            )
+            failed.append(chk)
+            rejection_reasons.append(chk.reason)
+
+    # 20. Required verified features check
+    if requirements.hard.requires_verified_features:
+        feat_str = " ".join(product.features).lower()
+        for v_feat in requirements.hard.requires_verified_features:
+            is_verified = False
+            if v_feat in ("eye_comfort", "eye-comfort"):
+                is_verified = any(kw in feat_str for kw in ("low blue light", "eye-care", "eye comfort", "tuv"))
+            elif v_feat in ("flicker_free", "flicker-free"):
+                is_verified = any(kw in feat_str for kw in ("flicker-free", "anti-flicker", "flicker free"))
+            elif v_feat == "stylus":
+                is_verified = bool(product.specs.get("stylus_support")) or any("pen" in f.lower() or "stylus" in f.lower() for f in product.features)
+            elif v_feat == "anc":
+                is_verified = product.specs.get("anc") is True
+            else:
+                is_verified = v_feat in feat_str or v_feat in str(product.specs).lower()
+
+            if is_verified:
+                passed.append(
+                    ConstraintCheck(
+                        name=f"verified_{v_feat}",
+                        status=ConstraintStatus.PASS,
+                        required=v_feat,
+                        actual=True,
+                        reason=f"Feature '{v_feat}' verified in catalogue.",
+                    )
+                )
+            else:
+                chk = ConstraintCheck(
+                    name=f"verified_{v_feat}",
+                    status=ConstraintStatus.FAIL,
+                    required=v_feat,
+                    actual=False,
+                    reason=f"Feature '{v_feat}' was required to be verified, but is not verified in catalogue.",
+                )
+                failed.append(chk)
+                rejection_reasons.append(chk.reason)
+
     # Critical Rule: Product is eligible ONLY if all checks passed, with zero failures and zero unknowns
     is_eligible = (len(failed) == 0 and len(unverifiable) == 0)
 
@@ -856,8 +987,8 @@ def _score_battery_life(product: Product) -> tuple[float, str]:
     return 40.0, "Category does not feature portable battery operation."
 
 
-def _score_display_quality(product: Product) -> tuple[float, str]:
-    """Score display quality using panel type, refresh rate, and resolution."""
+def _score_display_quality(product: Product, requirements: Requirements | None = None) -> tuple[float, str]:
+    """Score display quality using panel type, refresh rate, resolution, and screen size proximity."""
     features_text = " ".join(product.features).lower()
     specs_text = " ".join(str(v) for v in product.specs.values()).lower()
 
@@ -889,8 +1020,86 @@ def _score_display_quality(product: Product) -> tuple[float, str]:
         score = min(100.0, score + 5.0)
         highlights.append("QHD resolution")
 
+    # Monitor-specific size & eye-comfort adjustments
+    if requirements and product.category == Category.MONITOR:
+        target_sz = requirements.hard.target_screen_in or requirements.hard.screen_size_in
+        if target_sz is None and "screen_size" in requirements.preferences:
+            target_sz = 24.0
+        if target_sz is not None:
+            actual_sz = product.specs.get("size_in")
+            if actual_sz is not None:
+                diff = abs(actual_sz - target_sz)
+                if diff <= 0.6:
+                    score = min(100.0, score + 10.0)
+                    highlights.append(f"{actual_sz}\" matching requested size")
+                elif diff >= 2.5:
+                    score = max(40.0, score - 15.0)
+
+        if any(kw in features_text for kw in ("low blue light", "anti-flicker", "flicker-free", "eye-care")):
+            score = min(100.0, score + 8.0)
+            highlights.append("eye-comfort certification")
+
     tag = ", ".join(highlights) if highlights else "standard display"
     return round(score, 1), f"Display features ({tag}) rated {score:.1f}/100."
+
+
+def _score_eye_comfort(product: Product) -> tuple[float, str, bool]:
+    """Score verified eye-comfort and flicker-free protections for monitors."""
+    if product.category == Category.MONITOR:
+        feat_str = " ".join(product.features).lower()
+        score = 50.0
+        details = []
+        if any(k in feat_str for k in ("low blue light", "tuv")):
+            score += 25.0
+            details.append("Low Blue Light Certified")
+        if any(k in feat_str for k in ("anti-flicker", "flicker-free", "flicker free")):
+            score += 25.0
+            details.append("Anti-Flicker / Flicker-Free")
+        if "eye-care" in feat_str:
+            score += 15.0
+            details.append("Eye-Care sensor")
+        if details:
+            final_s = min(100.0, score)
+            return final_s, f"Verified eye protection: {', '.join(details)} ({final_s:.0f}/100).", True
+        return 50.0, "Eye comfort certification not verified in catalogue.", True
+
+    return 50.0, f"Category '{product.category.value}' does not track eye-comfort.", False
+
+
+def _score_screen_size(product: Product, requirements: Requirements) -> tuple[float, str, bool]:
+    """Score screen size match against user target preference."""
+    target = requirements.hard.target_screen_in or requirements.hard.screen_size_in
+    if target is None and requirements.category == Category.MONITOR:
+        target = 24.0
+
+    if target is not None:
+        actual = product.specs.get("size_in") or product.specs.get("screen_in")
+        if actual is not None:
+            diff = abs(actual - target)
+            if diff <= 0.6:
+                return 95.0, f"Screen size {actual}\" matches your {target}\" preference.", True
+            elif diff <= 3.5:
+                score = max(50.0, 90.0 - diff * 10.0)
+                return round(score, 1), f"Screen size {actual}\" differs from your {target}\" target.", True
+            else:
+                score = max(30.0, 70.0 - diff * 8.0)
+                return round(score, 1), f"Screen size {actual}\" is significantly different from your {target}\" target.", True
+        return 50.0, "Screen size specification unavailable.", True
+
+    return 70.0, "Standard screen dimensions.", True
+
+
+def _score_refresh_rate(product: Product, requirements: Requirements) -> tuple[float, str, bool]:
+    """Score screen refresh rate."""
+    if product.category == Category.MONITOR:
+        hz = product.specs.get("refresh_hz", 60)
+        req_hz = requirements.hard.min_refresh_hz or 60
+        if hz >= req_hz:
+            score = min(100.0, 70.0 + min(30.0, (hz - req_hz) * 0.3))
+            return round(score, 1), f"{hz}Hz refresh rate.", True
+        return 50.0, f"{hz}Hz refresh rate.", True
+
+    return 50.0, f"Category '{product.category.value}' does not track refresh rate.", False
 
 
 def _score_camera_quality(product: Product) -> tuple[float, str, bool]:
@@ -991,6 +1200,14 @@ def _score_build_quality(product: Product) -> tuple[float, str]:
     return score, "Standard durable construction rated 70/100."
 
 
+def _score_budget_value(product: Product, requirements: Requirements) -> tuple[float, str]:
+    """Score product price value where lower price scores higher within user budget."""
+    max_b = requirements.budget_max_inr or 50000
+    ratio = product.price_inr / max_b
+    score = round(max(20.0, min(100.0, 100.0 - (ratio * 50.0))), 1)
+    return score, f"Priced at ₹{product.price_inr:,}, offering strong value within your budget."
+
+
 def score_candidate(product: Product, requirements: Requirements) -> ScoreBreakdown:
     """Calculate transparent, multi-factor preference scores for an eligible candidate product.
 
@@ -1011,6 +1228,15 @@ def score_candidate(product: Product, requirements: Requirements) -> ScoreBreakd
     unsupported_preferences: list[str] = []
 
     # 1. Evaluate known preference dimensions
+    # Budget / Value for money
+    b_score, b_exp = _score_budget_value(product, requirements)
+    preference_scores["budget"] = b_score
+    explanations["budget"] = b_exp
+    preference_scores["value_for_money"] = b_score
+    explanations["value_for_money"] = b_exp
+    preference_scores["price"] = b_score
+    explanations["price"] = b_exp
+
     # Portability
     p_score, p_exp = _score_portability(product)
     preference_scores["portability"] = p_score
@@ -1027,7 +1253,7 @@ def score_candidate(product: Product, requirements: Requirements) -> ScoreBreakd
     explanations["battery_life"] = bat_exp
 
     # Display Quality
-    disp_score, disp_exp = _score_display_quality(product)
+    disp_score, disp_exp = _score_display_quality(product, requirements)
     preference_scores["display_quality"] = disp_score
     explanations["display_quality"] = disp_exp
 
@@ -1065,6 +1291,27 @@ def score_candidate(product: Product, requirements: Requirements) -> ScoreBreakd
     explanations["comfort"] = comf_exp
     if not comf_supp and "comfort" in requirements.preferences:
         unsupported_preferences.append("comfort")
+
+    # Eye Comfort
+    ec_score, ec_exp, ec_supp = _score_eye_comfort(product)
+    preference_scores["eye_comfort"] = ec_score
+    explanations["eye_comfort"] = ec_exp
+    if not ec_supp and "eye_comfort" in requirements.preferences:
+        unsupported_preferences.append("eye_comfort")
+
+    # Screen Size
+    sz_score, sz_exp, sz_supp = _score_screen_size(product, requirements)
+    preference_scores["screen_size"] = sz_score
+    explanations["screen_size"] = sz_exp
+    if not sz_supp and "screen_size" in requirements.preferences:
+        unsupported_preferences.append("screen_size")
+
+    # Refresh Rate
+    rr_score, rr_exp, rr_supp = _score_refresh_rate(product, requirements)
+    preference_scores["refresh_rate"] = rr_score
+    explanations["refresh_rate"] = rr_exp
+    if not rr_supp and "refresh_rate" in requirements.preferences:
+        unsupported_preferences.append("refresh_rate")
 
     # Build Quality
     bq_score, bq_exp = _score_build_quality(product)
@@ -1215,7 +1462,8 @@ def rank_candidates(
         key=lambda c: (-c.overall_score, c.product.price_inr, c.product_id)
     )
 
-    return candidates[:top_n]
+    effective_top_n = requirements.requested_result_count if requirements.requested_result_count is not None else top_n
+    return candidates[:effective_top_n]
 
 
 # ---------------------------------------------------------------------------
@@ -1239,14 +1487,22 @@ async def search_and_rank(
     Returns:
         CandidateSearchResult summarizing retrieval metrics, exclusions, and ranked candidates.
     """
+    effective_top_n = requirements.requested_result_count if requirements.requested_result_count is not None else top_n
+
     # 1. Retrieve candidates
-    retrieved = await retrieve_candidates(requirements, repository, limit=candidate_limit)
+    if isinstance(repository, Sequence):
+        retrieved = [
+            p for p in repository
+            if requirements.category is None or p.category == requirements.category
+        ][:candidate_limit]
+    else:
+        retrieved = await retrieve_candidates(requirements, repository, limit=candidate_limit)
 
     # 2. Hard constraint filtering
     eligible, excluded = filter_candidates(retrieved, requirements)
 
     # 3. Rank eligible candidates
-    ranked = rank_candidates(eligible, requirements, top_n=top_n)
+    ranked = rank_candidates(eligible, requirements, top_n=effective_top_n)
 
     # 4. Synthesize data-quality limitations across excluded candidates
     data_quality_limitations: set[str] = set()

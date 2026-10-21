@@ -415,10 +415,11 @@ async def run_pipeline(
         # 7. Execute policy action (Recommendation Gate enforces no premature recommendations)
         if decision.action == PolicyAction.RECOMMEND and decision.can_recommend:
             # Step 7a: Retrieve and rank candidates via Module 8
+            top_n = merged_requirements.requested_result_count or 5
             search_result = await search_and_rank(
                 requirements=merged_requirements,
                 repository=product_repo,
-                top_n=5,
+                top_n=top_n,
             )
 
             # Step 7b: Generate grounded response via Module 9

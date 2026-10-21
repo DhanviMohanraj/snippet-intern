@@ -11,6 +11,7 @@ Principle: The LLM explains; deterministic code validates and enforces.
 
 from __future__ import annotations
 
+from app.agent.rag import ProductEvidenceSummary, get_hybrid_retriever
 from app.agent.response_validator import (
     build_fallback_recommendation_response,
     validate_recommendation_response,
@@ -49,17 +50,38 @@ async def generate_recommendation_response(
             fallback_reason="No eligible products matched all criteria.",
         )
 
-    # 2. Offline / No LLM Fallback
+    # 2. Retrieve Product-Isolated Grounding Evidence via Hybrid RAG Layer
+    evidence_summaries: dict[str, ProductEvidenceSummary] = {}
+    try:
+        retriever = get_hybrid_retriever()
+        for cand in search_result.ranked_candidates:
+            evidence_summaries[cand.product_id] = retriever.get_product_grounding_context(
+                product=cand.product,
+                requirements=requirements,
+                top_k=6,
+            )
+    except Exception as err:
+        logger.warning(
+            "Hybrid RAG evidence retrieval failed: %s. Proceeding with catalogue context.",
+            err,
+        )
+
+    # 3. Offline / No LLM Fallback
     if llm_client is None:
         logger.info("No LLM client provided; returning deterministic grounded fallback response.")
         return build_fallback_recommendation_response(
             requirements,
             search_result,
             fallback_reason="Offline fallback: LLM client not provided.",
+            evidence_summaries=evidence_summaries,
         )
 
-    # 3. Build Prompt Context and Call LLM
-    messages = build_recommendation_prompt(requirements, search_result.ranked_candidates)
+    # 4. Build Prompt Context with Retrieved Evidence and Call LLM
+    messages = build_recommendation_prompt(
+        requirements,
+        search_result.ranked_candidates,
+        evidence_summaries=evidence_summaries,
+    )
 
     try:
         payload = await llm_client.complete_json(
@@ -77,11 +99,17 @@ async def generate_recommendation_response(
             requirements,
             search_result,
             fallback_reason=f"LLM generation failed: {type(err).__name__}",
+            evidence_summaries=evidence_summaries,
         )
 
-    # 4. Deterministic Validation and Grounding Verification
+    # 5. Deterministic Validation and Grounding Verification
     try:
-        response = validate_recommendation_response(payload, search_result, requirements)
+        response = validate_recommendation_response(
+            payload,
+            search_result,
+            requirements,
+            evidence_summaries=evidence_summaries,
+        )
         return response
     except Exception as err:
         logger.warning(
@@ -92,4 +120,5 @@ async def generate_recommendation_response(
             requirements,
             search_result,
             fallback_reason=f"Response validation failed: {type(err).__name__}",
+            evidence_summaries=evidence_summaries,
         )

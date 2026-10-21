@@ -428,10 +428,25 @@ def normalize(delta: RequirementsDelta) -> RequirementsDelta:
             form_factor=delta.hard.form_factor,
             requires_wireless=delta.hard.requires_wireless,
             requires_anc=delta.hard.requires_anc,
+            requires_stylus=delta.hard.requires_stylus,
+            min_refresh_hz=delta.hard.min_refresh_hz,
+            screen_size_in=delta.hard.screen_size_in,
+            target_screen_in=delta.hard.target_screen_in,
+            requires_eye_comfort=delta.hard.requires_eye_comfort,
+            requires_flicker_free=delta.hard.requires_flicker_free,
+            requires_verified_features=delta.hard.requires_verified_features,
         )
 
     # 7. Normalize ML Mode
     norm_ml_mode = delta.ml_mode.strip().lower() if delta.ml_mode else None
+
+    # 8. Normalize Requested Result Count
+    norm_requested_count = delta.requested_result_count
+    if norm_requested_count is not None:
+        try:
+            norm_requested_count = max(1, min(20, int(norm_requested_count)))
+        except (ValueError, TypeError):
+            norm_requested_count = None
 
     return RequirementsDelta(
         category=norm_category,
@@ -442,6 +457,7 @@ def normalize(delta: RequirementsDelta) -> RequirementsDelta:
         preferences=norm_preferences,
         ml_mode=norm_ml_mode,
         asked_slots=delta.asked_slots,
+        requested_result_count=norm_requested_count,
         removed_fields=norm_removed_fields,
         is_off_topic=delta.is_off_topic,
     )

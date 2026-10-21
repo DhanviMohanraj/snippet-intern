@@ -25,6 +25,9 @@ RECOGNIZED_PREFERENCES: set[str] = {
     "noise_cancellation",
     "microphone_quality",
     "comfort",
+    "eye_comfort",
+    "refresh_rate",
+    "screen_size",
 }
 
 CATEGORY_ALIASES: dict[str, Category] = {
@@ -92,6 +95,15 @@ PREFERENCE_ALIASES: dict[str, str] = {
     "comfortable": "comfort",
     "cushions": "comfort",
     "ear_cushions": "comfort",
+    "eye_comfort": "eye_comfort",
+    "eye_care": "eye_comfort",
+    "eyecare": "eye_comfort",
+    "low_blue_light": "eye_comfort",
+    "flicker_free": "flicker_free",
+    "anti_flicker": "flicker_free",
+    "screen_size": "screen_size",
+    "display_size": "screen_size",
+    "refresh_rate": "refresh_rate",
 }
 
 REMOVAL_FIELD_ALIASES: dict[str, str] = {
@@ -123,6 +135,12 @@ REMOVAL_FIELD_ALIASES: dict[str, str] = {
     "pen": "requires_stylus",
     "refresh_rate": "min_refresh_hz",
     "refresh_hz": "min_refresh_hz",
+    "count": "requested_result_count",
+    "requested_result_count": "requested_result_count",
+    "result_count": "requested_result_count",
+    "screen_size": "screen_size_in",
+    "eye_comfort": "requires_eye_comfort",
+    "flicker_free": "requires_flicker_free",
 }
 
 # Recognized fields and preference/constraint keys that can be explicitly cleared
@@ -150,6 +168,12 @@ VALID_REMOVABLE_FIELDS: set[str] = {
     "requires_anc",
     "requires_stylus",
     "min_refresh_hz",
+    "screen_size_in",
+    "target_screen_in",
+    "requires_eye_comfort",
+    "requires_flicker_free",
+    "requires_verified_features",
+    "requested_result_count",
 } | RECOGNIZED_PREFERENCES | set(REMOVAL_FIELD_ALIASES.keys())
 
 ML_MODES: set[str] = {"local", "cloud"}
@@ -189,6 +213,11 @@ class HardConstraints(BaseModel):
     requires_anc: bool | None = Field(default=None, description="Whether Active Noise Cancellation is strictly required")
     requires_stylus: bool | None = Field(default=None, description="Whether stylus/pen input support is strictly required")
     min_refresh_hz: int | None = Field(default=None, description="Minimum screen refresh rate in Hz", gt=0)
+    screen_size_in: float | None = Field(default=None, description="Required screen size in inches (monitors)", gt=0.0)
+    target_screen_in: float | None = Field(default=None, description="Target screen size in inches (monitors/laptops)", gt=0.0)
+    requires_eye_comfort: bool | None = Field(default=None, description="Whether eye-comfort / low-blue-light certification is strictly required")
+    requires_flicker_free: bool | None = Field(default=None, description="Whether flicker-free / anti-flicker operation is strictly required")
+    requires_verified_features: list[str] = Field(default_factory=list, description="Features that must be verified in catalogue to qualify")
 
     @field_validator("exclude_brands")
     @classmethod
@@ -196,6 +225,13 @@ class HardConstraints(BaseModel):
         if not isinstance(v, list):
             raise ValueError("exclude_brands must be a list of strings.")
         return [b.strip() for b in v if isinstance(b, str) and b.strip()]
+
+    @field_validator("requires_verified_features")
+    @classmethod
+    def validate_requires_verified_features(cls, v: list[str]) -> list[str]:
+        if not isinstance(v, list):
+            raise ValueError("requires_verified_features must be a list of strings.")
+        return [f.strip().lower() for f in v if isinstance(f, str) and f.strip()]
 
     @field_validator("form_factor")
     @classmethod
@@ -226,6 +262,7 @@ class Requirements(BaseModel):
     )
     ml_mode: str | None = Field(default=None, description="Machine learning execution mode ('local' | 'cloud')")
     asked_slots: list[str] = Field(default_factory=list, description="Requirement slots already queried by policy")
+    requested_result_count: int | None = Field(default=None, description="Explicit requested count of recommendations", ge=1, le=20)
 
     @field_validator("category", mode="before")
     @classmethod
@@ -272,6 +309,12 @@ class Requirements(BaseModel):
         return cleaned
 
 
+    @property
+    def hard_constraints(self) -> HardConstraints:
+        """Alias for self.hard for backwards compatibility."""
+        return self.hard
+
+
 class RequirementsDelta(BaseModel):
     """Extracted requirements delta from a single user turn."""
 
@@ -288,6 +331,7 @@ class RequirementsDelta(BaseModel):
     )
     ml_mode: str | None = Field(default=None, description="Extracted ML mode ('local' | 'cloud')")
     asked_slots: list[str] | None = Field(default=None, description="Asked slots if any")
+    requested_result_count: int | None = Field(default=None, description="Extracted requested count of recommendations", ge=1, le=20)
     removed_fields: list[str] = Field(
         default_factory=list,
         description="Fields or preferences explicitly requested to be removed",

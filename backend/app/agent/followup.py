@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import re
 from enum import Enum
-from typing import Any
+from typing import Any, Sequence
 
 from app.agent.ranking import evaluate_candidate
 from app.core.logging import get_logger
@@ -113,9 +113,12 @@ def detect_followup_intent(
 
 
 async def _get_all_category_products(
-    category: Category, product_repo: ProductRepository
+    category: Category, product_repo: ProductRepository | Sequence[Product]
 ) -> list[Product]:
     """Retrieve all products in a given category from the repository abstraction."""
+    if isinstance(product_repo, Sequence):
+        return sorted([p for p in product_repo if p.category == category], key=lambda p: p.price_inr)
+
     if hasattr(product_repo, "find"):
         prods, _ = await product_repo.find(
             filters={"category": category},
